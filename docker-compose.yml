@@ -54,6 +54,13 @@ services:
   #     CONFLUENT_SUPPORT_CUSTOMER_ID: 'anonymous'
 
 
+  http_north_to_mqtt:
+    build: ./north_forwarding/http_to_mqtt
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", ]
+    ports:
+      - "8000:8000"
+
+
   mosquitto:
     image: eclipse-mosquitto
     ports:

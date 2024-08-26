@@ -19,7 +19,7 @@ def on_connect(client, userdata, flags, reason_code, properties):
 
 mqttc = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
 mqttc.on_connect = on_connect
-mqttc.connect("localhost", 1883, 60)
+mqttc.connect("mosquitto", 1883, 60)
 app = FastAPI()
 
 

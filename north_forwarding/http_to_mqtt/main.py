@@ -17,9 +17,12 @@ class FlegdeMessage(BaseModel):
 def on_connect(client, userdata, flags, reason_code, properties):
     print(f"Connected with result code {reason_code}")
 
+
+
 mqttc = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
 mqttc.on_connect = on_connect
 mqttc.connect("mosquitto", 1883, 60)
+mqttc.loop_start()
 app = FastAPI()
 
 
@@ -34,7 +37,7 @@ def handle_fledge_messages(messages):
         readings_json = json.dumps(message.readings)
         # print(f'{message.asset=}')
         mqttc.publish(f"readings/assets/{message.asset}", readings_json, qos=1)
-        mqttc.loop(timeout=1.0)
+        # mqttc.loop(timeout=1.0)
 
 
 @app.post("/sensor-reading")

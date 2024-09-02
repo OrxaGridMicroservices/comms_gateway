@@ -37,7 +37,6 @@ def handle_fledge_messages(messages):
         mqttc.loop(timeout=1.0)
 
 
-
 @app.post("/sensor-reading")
 async def sensor_reading(messages: list[FlegdeMessage]):
     handle_fledge_messages(messages)

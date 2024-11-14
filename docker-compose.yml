@@ -1,6 +1,4 @@
-
 services:
- 
   fledge:
     image: robraesemann/fledge
     environment:
@@ -11,26 +9,27 @@ services:
       - 8081:8081
       - 1995:1995
       - 8080:8080
- 
+
   fledge-gui:
     image: robraesemann/fledge-gui
     ports:
-     - 80:80
- 
-  http_north_to_mqtt:
-    build: ./north_forwarding/http_to_mqtt
-    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", ]
-    ports:
-      - "8000:8000"
-    volumes:
-      - ./north_forwarding/http_to_mqtt:/app
+      - 80:80
 
-  mosquitto:
-    image: eclipse-mosquitto
-    ports:
-      - "1883:1883"
-    volumes:
-      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+  # http_north_to_mqtt:
+  #   build: ./north_forwarding/http_to_mqtt
+  #   command:
+  #     ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+  #   ports:
+  #     - "8000:8000"
+  #   volumes:
+  #     - ./north_forwarding/http_to_mqtt:/app
+
+  # mosquitto:
+  #   image: eclipse-mosquitto
+  #   ports:
+  #     - "1883:1883"
+  #   volumes:
+  #     - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
 
 volumes:
   fledge:

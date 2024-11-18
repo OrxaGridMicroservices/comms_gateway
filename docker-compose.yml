@@ -6,14 +6,14 @@ services:
     volumes:
       - fledge:/usr/local/fledge
     ports:
-      - 8081:8081
-      - 1995:1995
-      - 8080:8080
+      - 8081:8081 # Fledge API GUI
+      - 1995:1995 # Fledge management API
+      - 8080:8080 # Optional: Additional API if configured
 
   fledge-gui:
     image: robraesemann/fledge-gui
     ports:
-      - 80:80
+      - 80:80 # Fledge GUI
 
   # http_north_to_mqtt:
   #   build: ./north_forwarding/http_to_mqtt

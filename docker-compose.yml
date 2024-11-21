@@ -15,21 +15,12 @@ services:
     ports:
       - 80:80 # Fledge GUI
 
-  # http_north_to_mqtt:
-  #   build: ./north_forwarding/http_to_mqtt
-  #   command:
-  #     ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
-  #   ports:
-  #     - "8000:8000"
-  #   volumes:
-  #     - ./north_forwarding/http_to_mqtt:/app
-
-  # mosquitto:
-  #   image: eclipse-mosquitto
-  #   ports:
-  #     - "1883:1883"
-  #   volumes:
-  #     - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+  mosquitto:
+    image: eclipse-mosquitto
+    ports:
+      - 1883:1883
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
 
 volumes:
   fledge:

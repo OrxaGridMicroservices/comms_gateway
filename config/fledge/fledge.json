@@ -1,0 +1,58 @@
+{
+  "core": {
+    "name": "Fledge",
+    "logLevel": "info",
+    "restAPI": {
+      "httpPort": 8081,
+      "managementPort": 1995
+    }
+  },
+  "south": [
+    {
+      "name": "mqtt-sub",
+      "type": "south",
+      "plugin": "mqtt-readings",
+      "enabled": true,
+      "config": {
+        "MQTT Broker host": {
+          "value": "mosquitto"
+        },
+        "MQTT Broker Port": {
+          "value": "1883"
+        },
+        "Username": {
+          "value": ""
+        },
+        "Password": {
+          "value": ""
+        },
+        "Keep Alive Interval": {
+          "value": "60"
+        },
+        "Topic To Subscribe": {
+          "value": "test/topic"
+        },
+        "QoS Level": {
+          "value": "2"
+        },
+        "Asset Name": {
+          "value": "mqtt_data"
+        },
+        "Datapoint Name": {
+          "value": "sensor_data"
+        }
+      }
+    }
+  ],
+  "schedules": [
+    {
+      "name": "Poll MQTT Data",
+      "type": "south",
+      "processName": "mqtt-sub",
+      "repeat": "30",
+      "enabled": true
+    }
+  ],
+  "tasks": [],
+  "assets": []
+}

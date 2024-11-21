@@ -6,21 +6,30 @@ services:
     volumes:
       - fledge:/usr/local/fledge
     ports:
-      - 8081:8081
-      - 1995:1995
-      - 8080:8080
+      - 8081:8081 # Fledge API GUI
+      - 1995:1995 # Fledge management API
+      - 8080:8080 # Optional: Additional API if configured
 
   fledge-gui:
     image: robraesemann/fledge-gui
     ports:
-      - 80:80
+      - 80:80 # Fledge GUI
 
-  mosquitto:
-    image: eclipse-mosquitto
-    ports:
-      - "1883:1883"
-    volumes:
-      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+  # http_north_to_mqtt:
+  #   build: ./north_forwarding/http_to_mqtt
+  #   command:
+  #     ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+  #   ports:
+  #     - "8000:8000"
+  #   volumes:
+  #     - ./north_forwarding/http_to_mqtt:/app
+
+  # mosquitto:
+  #   image: eclipse-mosquitto
+  #   ports:
+  #     - "1883:1883"
+  #   volumes:
+  #     - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
 
 volumes:
   fledge:

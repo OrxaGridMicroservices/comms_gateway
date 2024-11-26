@@ -23,6 +23,9 @@ The Fledge GUI provides an intuitive way to interact with Fledge components such
 5. **Setting Up Filters**:
     - Filters allow you to process or transform data before sending it out of Fledge.
     - Common filters include simple transformations, statistical functions, or threshold-based actions (like sending notifications when a threshold is exceeded).
+  
+ ![image](https://github.com/user-attachments/assets/d1522bf4-c030-4d1a-89ca-4b0231f4c64c)
+     
 
 ###
 

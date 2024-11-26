@@ -6,8 +6,8 @@ services:
     volumes:
       - fledge:/usr/local/fledge
     ports:
-      - 8081:8081 # Fledge API GUI
-      - 6683:6683 # Fledge management API
+      - 8081:8081 # Fledge management API
+      - 6683:6683 # Fledge south API
       - 8080:8080 # Optional: Additional API if configured
 
   fledge-gui:

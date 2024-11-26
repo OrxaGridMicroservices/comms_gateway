@@ -1,0 +1,132 @@
+{
+	"info": {
+		"_postman_id": "a247e965-71aa-493d-89eb-da8f4e4ff2b3",
+		"name": "Fledge",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "33228236"
+	},
+	"item": [
+		{
+			"name": "http://0.0.0.0:6683/sensor-reading",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "[\r\n    {\r\n        \"timestamp\": \"2020-07-08 16:16:07.263657+00:00\",\r\n        \"asset\": \"test_asset\",\r\n        \"readings\": {\r\n            \"voltage\": 239.4,\r\n            \"current\": 16786778\r\n        }\r\n    }\r\n]\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://0.0.0.0:6683/sensor-reading",
+					"protocol": "http",
+					"host": [
+						"0",
+						"0",
+						"0",
+						"0"
+					],
+					"port": "6683",
+					"path": [
+						"sensor-reading"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8081/fledge/service",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8081/fledge/asset/http-test_asset?limit=2",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"fledge",
+						"asset",
+						"http-test_asset"
+					],
+					"query": [
+						{
+							"key": "format",
+							"value": "repository",
+							"disabled": true
+						},
+						{
+							"key": "name",
+							"value": "http_south",
+							"disabled": true
+						},
+						{
+							"key": "type",
+							"value": "south",
+							"disabled": true
+						},
+						{
+							"key": "limit",
+							"value": "2"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": " http://172.17.0.2:8082/api/v4/mqtt/publish",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"topic\": \"test/topic\",\r\n    \"payload\": \"Asset=RoomConditions,temperature=22.5,humidity=60%\",\r\n    \"qos\": 0\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://0.0.0.0:1883/api/v4/mqtt/publish",
+					"protocol": "http",
+					"host": [
+						"0",
+						"0",
+						"0",
+						"0"
+					],
+					"port": "1883",
+					"path": [
+						"api",
+						"v4",
+						"mqtt",
+						"publish"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

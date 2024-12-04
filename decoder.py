@@ -2,6 +2,27 @@ import struct
 
 def binary_debugger(readings):
     decoded_readings = []
+    parameter_names = [
+        "Voltage_PN1", "Voltage_PN2", "Voltage_PN3", "Voltage_PP1", "Voltage_PP2", "Voltage_PP3",
+        "Current1", "Current2", "Current3", "NeutralCurrent",
+        "Frequency1", "Frequency2", "Frequency3",
+        "PowerFactor1", "PowerFactor2", "PowerFactor3", "AveragePF",
+        "ActivePower1", "ActivePower2", "ActivePower3",
+        "ReactivePower1", "ReactivePower2", "ReactivePower3",
+        "ApparentPower1", "ApparentPower2", "ApparentPower3",
+        "TotalActivePower", "TotalReactivePower", "TotalApparentPower",
+        "AngleVA_VB", "AngleVB_VC", "AngleVA_VC",
+        "AngleVA_IA", "AngleVB_IB", "AngleVC_IC", 
+        "AngleIA_IB", "AngleIB_IC", "AngleIA_IC",
+        "ActiveEnergy1", "ActiveEnergy2", "ActiveEnergy3",
+        "ReactiveEnergy1", "ReactiveEnergy2", "ReactiveEnergy3",
+        "ApparentEnergy1", "ApparentEnergy2", "ApparentEnergy3",
+        "Accum_ActEnergy1", "Accum_ActEnergy2", "Accum_ActEnergy3",
+        "Accum_ReactEnergy1", "Accum_ReactEnergy2", "Accum_ReactEnergy3",
+        "Accum_ApprntEnergy1", "Accum_ApprntEnergy2", "Accum_ApprntEnergy3",
+        "Total_ActEnergy", "Total_ReactEnergy", "Total_ApprntEnergy",
+        "Seconds", "Minutes", "Hours", "Weekday", "Date", "Month", "Year", "IsNlf"
+    ]
     
     for element in readings:
         # Check the length of the binary data
@@ -10,7 +31,7 @@ def binary_debugger(readings):
         try:
             decoded_value = struct.unpack('<103f6bH?', element)  
             # Append the decoded values to the list
-            decoded_readings.append(decoded_value)
+            decoded_readings.append(dict(zip(parameter_names, decoded_value)))
         except struct.error as e:
             print(f"Error unpacking data: {e}")
     

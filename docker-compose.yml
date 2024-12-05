@@ -1,26 +1,26 @@
 # From https://github.com/RobRaesemann/FLEDGE-IOT-Docker
-
 services:
   fledge:
-    image: robraesemann/fledge
+    image: robraesemann/fledge:2.6.0
     environment:
       - FLEDGE_ROOT=/usr/local/fledge
     volumes:
       - fledge:/usr/local/fledge
     ports:
       - 8081:8081 # Fledge management API
-      - 6683:6683 # Fledge south API
+      - 6685:6685 # Fledge south API
+      - 6683:6683
       - 8080:8080 # Optional: Additional API if configured
 
   fledge-gui:
-    image: robraesemann/fledge-gui
+    image: robraesemann/fledge-gui:2.6.0
     ports:
       - 80:80 # Fledge GUI
 
   mosquitto:
     image: eclipse-mosquitto
     ports:
-      - 1883:1883
+      - 1884:1883
     volumes:
       - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
 

@@ -1,7 +1,7 @@
 # From https://github.com/RobRaesemann/FLEDGE-IOT-Docker
 services:
   fledge:
-    image: robraesemann/fledge:v2.6.0
+    image: robraesemann/fledge:2.6.0
     environment:
       - FLEDGE_ROOT=/usr/local/fledge
     volumes:
@@ -13,7 +13,7 @@ services:
       - 8080:8080 # Optional: Additional API if configured
 
   fledge-gui:
-    image: robraesemann/fledge-gui
+    image: robraesemann/fledge-gui:2.6.0
     ports:
       - 80:80 # Fledge GUI
 

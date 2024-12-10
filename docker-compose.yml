@@ -1,7 +1,7 @@
 # From https://github.com/RobRaesemann/FLEDGE-IOT-Docker
 services:
   fledge:
-    image: robraesemann/fledge:2.6.0
+    image: fledge
     environment:
       - FLEDGE_ROOT=/usr/local/fledge
     volumes:

@@ -101,7 +101,7 @@ RUN echo "# Unprivileged Docker containers do not have access to the kernel log.
 # start rsyslog, FLEDGE, and tail syslog
 CMD ["bash","/usr/local/fledge/fledge.sh"]
 
-LABEL maintainer="rob@raesemann.com" \
+LABEL maintainer="Orxagrid.com" \
       author="Rob Raesemann" \
       target="x64" \
       version="${FLEDGE_VERSION}" \

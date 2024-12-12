@@ -2,7 +2,8 @@
 services:
   fledge:
     build:
-      dockerfile: Dockerfile # Optional if the file is named Dockerfile
+      context: .
+      dockerfile: ./Dockerfile # Optional if the file is named Dockerfile
     environment:
       - FLEDGE_ROOT=/usr/local/fledge
     volumes:

@@ -3,8 +3,10 @@ services:
   fledge:
     build: .
     platform: linux/amd64
+    container_name: og-fledge
     environment:
       - FLEDGE_ROOT=/usr/local/fledge
+      - TZ=${TZ}
     volumes:
       - fledge:/usr/local/fledge
     ports:
@@ -14,16 +16,50 @@ services:
       - 8080:8080 # Optional: Additional API if configured
 
   fledge-gui:
+    container_name: og-fledge-gui
     image: robraesemann/fledge-gui:2.6.0
+    environment:
+      - TZ=${TZ}
     ports:
       - 80:80 # Fledge GUI
 
   mosquitto:
     image: eclipse-mosquitto
+    container_name: og-mosquitto
+    environment:
+      - TZ=${TZ}
     ports:
       - 1884:1883
     volumes:
       - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+
+  fledge-api:
+    container_name: og-fledge-api
+    build: 
+      context: .
+      dockerfile: Dockerfile.api
+    ports:
+      - "8000:8000"  # FastAPI Swagger
+    depends_on:
+      fledge:
+        condition: service_started
+    environment:
+      - FLEDGE_BASE_URL=${FLEDGE_BASE_URL}
+      - TZ=${TZ}
+    command: >
+      uvicorn main:app --host 0.0.0.0 --port 8000
+
+  mqtt_publisher_simalator:
+    build: ./mqtt-publisher
+    container_name: og-mqtt-publisher-simalator
+    environment:
+      - BROKER=mosquitto
+      - PORT=1883
+      - TOPIC=sensor/data
+      - INTERVAL=5
+      - TZ=${TZ}
+    depends_on:
+      - mosquitto
 
 volumes:
   fledge:

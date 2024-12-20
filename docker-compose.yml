@@ -58,6 +58,7 @@ services:
       - TOPIC=sensor/data
       - INTERVAL=5
       - TZ=${TZ}
+      - MQTT_DEVICE=${MQTT_DEVICE}
     depends_on:
       - mosquitto
 

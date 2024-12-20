@@ -1,8 +1,300 @@
 {
     "sensors": {
-      "temperature": {"min": 20.0, "max": 30.0},
-      "humidity": {"min": 30.0, "max": 90.0},
-      "pressure": {"min": 950, "max": 1050},
-      "ANASEN_CH1": {"min": 0, "max": 1000}
+        "ApparentImpEnergy_Y": {
+            "min": 1427.3135,
+            "max": 1744.4943
+        },
+        "ActiveImpEnergy_B": {
+            "min": -475.1733,
+            "max": -580.7673
+        },
+        "ReactiveEnergy_B_Q2": {
+            "min": 0.1261,
+            "max": 0.1541
+        },
+        "ReactiveCumEnergyQ3": {
+            "min": 1.1701,
+            "max": 1.4301
+        },
+        "Accum_ApparentEnergy_Y": {
+            "min": 12037.0764,
+            "max": 14711.9822
+        },
+        "ReactivePower_R": {
+            "min": 243.0537,
+            "max": 297.0657
+        },
+        "ReactiveEnergy_R_Q1": {
+            "min": 0.4068,
+            "max": 0.4972
+        },
+        "ApparantExpCumEnergy": {
+            "min": 0.0,
+            "max": 0.0
+        },
+        "ReactiveImpEnergy_Y": {
+            "min": 1427.2881,
+            "max": 1744.4633
+        },
+        "AppExpCumEnergy": {
+            "min": 261.1235,
+            "max": 319.1509
+        },
+        "ReactiveEnergy_R_Q4": {
+            "min": 0.4128,
+            "max": 0.5046
+        },
+        "ApparentExpEnergy_B": {
+            "min": 0.0,
+            "max": 0.0
+        },
+        "b_r_Voltage": {
+            "min": 190.8963,
+            "max": 233.3177
+        },
+        "Accum_ReactEnergy_R": {
+            "min": 1215.2685,
+            "max": 1485.3281
+        },
+        "ApparentExpEnergy_R": {
+            "min": 0.0,
+            "max": 0.0
+        },
+        "powerFactor_Y": {
+            "min": -0.0054,
+            "max": -0.0066
+        },
+        "ReactiveEnergy_Y_Q4": {
+            "min": 0.2477,
+            "max": 0.3027
+        },
+        "ApparentEnergy_B": {
+            "min": 2292.5046,
+            "max": 2801.95
+        },
+        "ActiveExpEnergy_Y": {
+            "min": 0.0,
+            "max": 0.0
+        },
+        "ActivePower_B": {
+            "min": -95.0347,
+            "max": -116.1535
+        },
+        "TotalApparentPower": {
+            "min": 2865.9162,
+            "max": 3502.7864
+        },
+        "r_y_Voltage": {
+            "min": 195.0141,
+            "max": 238.3505
+        },
+        "VoltageTotalHarmonicDistortion_Y": {
+            "min": 19.4925,
+            "max": 23.8241
+        },
+        "Accum_ActiveEnergy_B": {
+            "min": 2621105.775,
+            "max": 3203573.725
+        },
+        "ReactiveExpEnergy_R": {
+            "min": 0.0,
+            "max": 0.0
+        },
+        "y_RMSCurrent": {
+            "min": 0.7599,
+            "max": 0.9287
+        },
+        "Accum_ActiveEnergy_R": {
+            "min": -4059392.85,
+            "max": -4961480.15
+        },
+        "ReactiveEnergy_B": {
+            "min": 2242.7187,
+            "max": 2741.1007
+        },
+        "Accum_ApparentEnergy_B": {
+            "min": 14329.5803,
+            "max": 17513.9315
+        },
+        "ActiveEnergy_R": {
+            "min": -4059392.85,
+            "max": -4961480.15
+        },
+        "VoltageAngle_VR_VY": {
+            "min": 180.8033,
+            "max": 220.9818
+        },
+        "VoltageTotalHarmonicDistortion_B": {
+            "min": 14.9341,
+            "max": 18.2528
+        },
+        "b_RMSCurrent": {
+            "min": 1.1561,
+            "max": 1.413
+        },
+        "powerFactor_B": {
+            "min": -0.1866,
+            "max": -0.228
+        },
+        "ReactiveEnergy_R": {
+            "min": 1215.2685,
+            "max": 1485.3281
+        },
+        "Total_ApparentEnergy": {
+            "min": 36976.4192,
+            "max": 45193.4012
+        },
+        "TotalReactivePower": {
+            "min": 977.055,
+            "max": 1194.1784
+        },
+        "CurrentAngle_IR_IY": {
+            "min": 309.2557,
+            "max": 377.9791
+        },
+        "CurrentAngle_IY_IB": {
+            "min": 183.0475,
+            "max": 223.7247
+        },
+        "ActiveExpEnergy_B": {
+            "min": 0.0,
+            "max": 0.0
+        },
+        "ReactiveEnergy_Y_Q1": {
+            "min": 0.0257,
+            "max": 0.0314
+        },
+        "frequency_R": {
+            "min": 45.3596,
+            "max": 55.4396
+        },
+        "ReactiveImpEnergy_R": {
+            "min": 1215.2685,
+            "max": 1485.3281
+        },
+        "ReactiveEnergy_B_Q3": {
+            "min": 0.3333,
+            "max": 0.4073
+        },
+        "TotalActivePower": {
+            "min": 2011.248,
+            "max": 2458.192
+        },
+        "r_RMSVoltage": {
+            "min": 191.2567,
+            "max": 233.7581
+        },
+        "VoltageAngle_VB_VR": {
+            "min": 124.6386,
+            "max": 152.336
+        },
+        "ActiveImpEnergy_Y": {
+            "min": -8.5196,
+            "max": -10.4128
+        },
+        "ActiveExpCumEnergy": {
+            "min": 0.0,
+            "max": 0.0
+        },
+        "Accum_ApparentEnergy_R": {
+            "min": 10609.7625,
+            "max": 12967.4875
+        },
+        "ActivePower_R": {
+            "min": 2107.9866,
+            "max": 2576.428
+        },
+        "CurrentAngle_IB_IR": {
+            "min": 150.1364,
+            "max": 183.5
+        },
+        "ReactiveEnergy_Y_Q2": {
+            "min": 0.3112,
+            "max": 0.3804
+        },
+        "Avg_powerFactor": {
+            "min": 0.2341,
+            "max": 0.2861
+        },
+        "VoltageAngle_VY_VB": {
+            "min": 295.6988,
+            "max": 361.4096
+        },
+        "ActiveImpEnergy_R": {
+            "min": 10539.9325,
+            "max": 12882.1397
+        },
+        "ReactiveExpEnergy_Y": {
+            "min": 0.0,
+            "max": 0.0
+        },
+        "ApparentPower_R": {
+            "min": 2121.9526,
+            "max": 2593.4976
+        },
+        "VoltageTotalHarmonicDistortion_R": {
+            "min": 12.933,
+            "max": 15.807
+        },
+        "frequency_Y": {
+            "min": 45.1332,
+            "max": 55.1628
+        },
+        "ActivePower_Y": {
+            "min": -1.7039,
+            "max": -2.0825
+        },
+        "ReactiveEnergy_Y": {
+            "min": 1427.2881,
+            "max": 1744.4633
+        },
+        "ApparentEnergy_Y": {
+            "min": 1427.3135,
+            "max": 1744.4943
+        },
+        "ActiveExpEnergy_R": {
+            "min": 0.0,
+            "max": 0.0
+        },
+        "ReactiveExpEnergy_B": {
+            "min": 0.0,
+            "max": 0.0
+        },
+        "ReactiveCumEnergyQ2": {
+            "min": 0.6817,
+            "max": 0.8331
+        },
+        "ActiveEnergy_B": {
+            "min": -475.1733,
+            "max": -580.7673
+        },
+        "y_b_Voltage": {
+            "min": 181.4047,
+            "max": 221.7169
+        },
+        "ReactiveCumEnergyQ4": {
+            "min": 0.8897,
+            "max": 1.0874
+        },
+        "y_RMSVoltage": {
+            "min": 195.1941,
+            "max": 238.5705
+        },
+        "ReactivePower_Y": {
+            "min": 285.4576,
+            "max": 348.8926
+        },
+        "ReactiveEnergy_R_Q3": {
+            "min": 0.4207,
+            "max": 0.5141
+        },
+        "ReactiveImpEnergy_B": {
+            "min": 2242.7187,
+            "max": 2741.1007
+        },
+        "ActiveEnergy_Y": {
+            "min": -8.5196,
+            "max": -10.4128
+        }
     }
-  }  
+}

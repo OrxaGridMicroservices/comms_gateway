@@ -6,19 +6,26 @@ import os
 
 BROKER = os.getenv("BROKER", "localhost")
 PORT = int(os.getenv("PORT", 1883))
-TOPIC = os.getenv("TOPIC", "sensor/data")
 INTERVAL = int(os.getenv("INTERVAL", 5))
+MQTT_DEVICE = os.getenv("MQTT_DEVICE", "device1,device2").split(",")
 
 # Load configuration from config.json
-with open("config.json") as f:
-    config = json.load(f)
+try:
+    with open("config.json") as f:
+        config = json.load(f)
+except FileNotFoundError:
+    print("Error: config.json not found!")
+    exit(1)
 
-def generate_payload():
+def generate_payload(device_name):
     payload = {
         key: random.uniform(value["min"], value["max"])
         for key, value in config["sensors"].items()
     }
-    payload["timestamp"] = time.strftime("%Y-%m-%d %H:%M:%S")
+    payload.update({
+        "device": device_name,
+        "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+    })
     return json.dumps(payload)
 
 def on_connect(client, userdata, flags, rc):
@@ -27,18 +34,20 @@ def on_connect(client, userdata, flags, rc):
     else:
         print(f"Failed to connect, return code {rc}")
 
-client = mqtt.Client("MQTTPublisher", callback_api_version=5)
+client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
 client.on_connect = on_connect
 client.connect(BROKER, PORT, 60)
 
 try:
     while True:
-        message = generate_payload()
-        result = client.publish(TOPIC, message)
-        if result[0] == 0:
-            print(f"Published: {message}")
-        else:
-            print("Failed to publish message.")
+        for device in MQTT_DEVICE:
+            topic = f"{device}/data"
+            message = generate_payload(device)
+            result = client.publish(topic, message)
+            if result[0] == 0:
+                print(f"Published to {topic}: {message}")
+            else:
+                print(f"Failed to publish message to {topic}.")
         time.sleep(INTERVAL)
 except KeyboardInterrupt:
     print("Stopping MQTT Publisher.")

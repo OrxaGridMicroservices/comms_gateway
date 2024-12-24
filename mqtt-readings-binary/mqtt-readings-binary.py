@@ -62,6 +62,7 @@ from fledge.plugins.common import utils
 from fledge.services.south import exceptions
 from fledge.services.south.ingest import Ingest
 import async_ingest
+import struct
 
 __author__ = "Praveen Garg"
 __copyright__ = "Copyright (c) 2020 Dianomic Systems, Inc."
@@ -291,16 +292,43 @@ class MqttSubscriberClient(object):
     async def save(self, msg):
         """Store msg content to Fledge with support for binary and JSON payloads."""
         try:
-            # Attempt to decode the payload as UTF-8
-            decoded_payload = msg.payload.decode('utf-8')
-            try:
-                # Try to parse as JSON
-                payload_data = json.loads(decoded_payload)
-            except json.JSONDecodeError:
-                # If not JSON, treat it as a plain string
-                payload_data = {'value': decoded_payload}
-        except UnicodeDecodeError:
-            # If decoding fails, treat it as binary data
+            struct_format = (
+                '<'     # Little-endian specifier
+                '4f'    # 4 floats for AnalogData
+                'B B B B B B H'  # Timestamp components: seconds, minutes, hours, weekday, date, month, year
+                '?'     # Boolean for IsNlf
+            )
+            struct_size = struct.calcsize(struct_format)
+
+            # Ensure payload size matches struct size
+            if len(msg.payload) != struct_size:
+                raise ValueError(f"Payload size {len(msg.payload)} does not match expected size {struct_size}.")
+
+            # Unpack the payload
+            unpacked_data = struct.unpack(struct_format, msg.payload)
+
+            # Extract data
+            analog_data = unpacked_data[:4]
+            timestamp = unpacked_data[4:11]  # seconds, minutes, hours, weekday, date, month, year
+            is_nlf = unpacked_data[11]
+
+            # Handle year correctly
+            year = timestamp[6] if timestamp[6] > 99 else 2000 + timestamp[6]
+
+            # Format timestamp
+            formatted_timestamp = f"{year}-{timestamp[5]:02d}-{timestamp[4]:02d} {timestamp[2]:02d}:{timestamp[1]:02d}:{timestamp[0]:02d}"
+
+            # Build the JSON object
+            payload_data = {
+                "ANASEN_CH1": analog_data[0],
+                "ANASEN_CH2": analog_data[1],
+                "ANASEN_CH3": analog_data[2],
+                "ANASEN_CH4": analog_data[3],
+                "timestamp": formatted_timestamp,
+                "IsNlf": is_nlf
+            }
+        except:
+                # If decoding fails, treat it as binary data
             payload_data = {
                 'binary_data': list(msg.payload)  # Convert binary payload to a list of integers
             }

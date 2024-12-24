@@ -1,7 +1,8 @@
 # From https://github.com/RobRaesemann/FLEDGE-IOT-Docker
 services:
   fledge:
-    build: .
+    #build: .
+    image: robraesemann/fledge:1.9.2
     platform: linux/amd64
     container_name: og-fledge
     environment:
@@ -9,6 +10,7 @@ services:
       - TZ=${TZ}
     volumes:
       - fledge:/usr/local/fledge
+      - ./mqtt-readings-binary:/usr/local/fledge/python/fledge/plugins/south/mqtt-readings-binary
     ports:
       - 8081:8081 # Fledge management API
       - 6685:6685 # Fledge south API
@@ -49,18 +51,38 @@ services:
     command: >
       uvicorn main:app --host 0.0.0.0 --port 8000
 
-  mqtt_publisher_simalator:
+  mqtt-seed-stem-json-emulator:
     build: ./mqtt-publisher
-    container_name: og-mqtt-publisher-simalator
+    container_name: og-mqtt-seed-stem-json-emulator
     environment:
       - BROKER=mosquitto
       - PORT=1883
-      - TOPIC=sensor/data
+     # - TOPIC=sensor/data
       - INTERVAL=5
       - TZ=${TZ}
       - MQTT_DEVICE=${MQTT_DEVICE}
     depends_on:
       - mosquitto
+
+  mqtt-seed-stem-binary-emulator:
+    container_name: og-mqtt-seed-stem-binary-emulator
+    build:
+      context: https://${GITHUB_TOKEN}@github.com/OrxaGridMicroservices/SEED-STEM-Emulator.git#main
+    platform: linux/amd64
+    command: python /app/main.py --data_type random --interval 20
+
+    environment:
+      - MQTT_BROKER=${MQTT_BROKER}
+      - MQTT_PORT=${MQTT_PORT}
+      - MQTT_USERNAME=${MQTT_USERNAME}
+      - MQTT_PASSWORD=${MQTT_PASSWORD}
+      - MQTT_TOPIC=${MQTT_TOPIC}
+      - MQTT_DEVICE=${MQTT_DEVICE}
+      - DEVICE_TYPE=${DEVICE_TYPE}
+      - TZ=${TZ}
+    tty: true
+    restart: always # Added restart policy
+    stdin_open: true
 
 volumes:
   fledge:

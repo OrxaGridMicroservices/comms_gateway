@@ -274,6 +274,10 @@ class MqttSubscriberClient(object):
         #Save DDS data
         if "ddstop" in str(msg.topic):
             self.loop.run_until_complete(self.save_dds(msg))
+        
+        #Save PQ data
+        if "pqstop" in str(msg.topic):
+            self.loop.run_until_complete(self.save_pq(msg))
 
     def on_subscribe(self, client, userdata, mid, granted_qos):
         pass
@@ -493,6 +497,89 @@ class MqttSubscriberClient(object):
         
         # Prepare data for ingestion
         _LOGGER.debug("Ingesting data on topic %s: %s", str(msg.topic), payload_data)
+        data = {
+            'asset': self.asset,
+            'timestamp': utils.local_timestamp(),
+            'readings': payload_data
+        }
+        
+        # Use async_ingest callback to save data
+        await async_ingest.ingest_callback(c_callback, c_ingest_ref, data)
+
+    async def save_pq(self, msg):
+        """Store msg content to Fledge with support for binary and JSON payloads."""
+        try:
+            struct_format = (
+                '<'                  # Little-endian specifier
+                '3f3f3f'             # minVtg[3], maxVtg[3], avgVtg[3]
+                '3f3f3f'             # minCur[3], maxCur[3], avgCur[3]
+                '3f3f3f'             # minFreq[3], maxFreq[3], avgFreq[3]
+                'HHHfHHHfHHHf'       # Dip[3 phases]: 3 integers + 1 float per phase
+                'HHHfHHHfHHHf'       # Swell[3 phases]: 3 integers + 1 float per phase
+                'HHHfHHHfHHHf'       # Intrp
+                'HffHffHff'          # RVC[3 phases]: 3 integers + 1 float per phase'
+                '3f3f3f3f'           # crestFactor[3], overCurrent[3], underVoltage[3], overVoltage[3]
+                '6f2f6f2f'           # symmCompVtg, unbCompVtg, symmCompCur, unbCompCur
+                '3f3f'               # vtgTHD[3], curTHD[3]
+                '6f'                 # UOD[3]
+                'H3fH3fH3f'          # flicker
+                '6f'                 # MSVValues[3]
+                'I'                  # eventRegister
+                'B B B B B B H'      # t_Timestamp
+                '?'                  # IsNlf
+            )
+
+            #PQ parameters
+            field_names = [
+                "minVtg", "maxVtg", "avgVtg",
+                "minCur", "maxCur", "avgCur",
+                "minFreq", "maxFreq", "avgFreq",
+                "Dip1", "Dip2", "Dip3",
+                "Swell1", "Swell2", "Swell3",
+                "Intrp1", "Intrp2", "Intrp3",
+                "RVC1", "RVC2", "RVC3",
+                "crestFactor", "overCurrent", "underVoltage", "overVoltage",
+                "symmCompVtg", "unbCompVtg", "symmCompCur", "unbCompCur",
+                "vtgTHD", "curTHD",
+                "UOD", "flicker",
+                "MSVValues", "eventRegister", "IsNlf"
+            ]
+
+            #Calculate struct size
+            struct_size = struct.calcsize(struct_format)
+
+            # Ensure payload size matches struct size
+            if len(msg.payload) != struct_size:
+                raise ValueError(f"Payload size {len(msg.payload)} does not match expected size {struct_size}.")
+
+
+            #Unpack the payload
+            unpacked_data = struct.unpack(struct_format, msg.payload)
+            
+            #convert into json payload
+            json_payload = {field_name: value for field_name, value in zip(field_names, unpacked_data)}
+
+           # Parse and format timestamp
+            timestamp_data = unpacked_data[-8:-1]
+            seconds, minutes, hours, weekday, date, month, year = timestamp_data
+            year = int(year) if year > 99 else 2000 + int(year)
+            formatted_timestamp = f"{year}-{int(month):02d}-{int(date):02d} {int(hours):02d}:{int(minutes):02d}:{int(seconds):02d}"
+            json_payload["timestamp"] = formatted_timestamp
+            
+            # Convert IsNlf to boolean
+            json_payload["IsNlf"] = bool(unpacked_data[-1])
+
+            #Assign to payload_data
+            payload_data = json_payload
+
+        except:
+                # If decoding fails, treat it as binary data
+            payload_data = {
+                'binary_data': list(msg.payload)  # Convert binary payload to a list of integers
+            }
+        
+        # Prepare data for ingestion
+        _LOGGER.debug("Ingesting PQ data on topic %s: %s", str(msg.topic), payload_data)
         data = {
             'asset': self.asset,
             'timestamp': utils.local_timestamp(),

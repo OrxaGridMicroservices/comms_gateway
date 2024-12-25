@@ -262,8 +262,14 @@ class MqttSubscriberClient(object):
         """
         _LOGGER.info("MQTT Received message; Topic: %s, Payload: %s  with QoS: %s", str(msg.topic), str(msg.payload),
                      str(msg.qos))
-
-        self.loop.run_until_complete(self.save(msg))
+        
+        #Save ADS data
+        if "adstop" in str(msg.topic):
+          self.loop.run_until_complete(self.save_ads(msg))
+        
+        #Save PDS data
+        if "pdstop" in str(msg.topic):
+            self.loop.run_until_complete(self.save_pds(msg))
 
     def on_subscribe(self, client, userdata, mid, granted_qos):
         pass
@@ -289,7 +295,7 @@ class MqttSubscriberClient(object):
         self.mqtt_client.disconnect()
         self.mqtt_client.loop_stop()
 
-    async def save(self, msg):
+    async def save_ads(self, msg):
         """Store msg content to Fledge with support for binary and JSON payloads."""
         try:
             struct_format = (
@@ -327,6 +333,95 @@ class MqttSubscriberClient(object):
                 "timestamp": formatted_timestamp,
                 "IsNlf": is_nlf
             }
+        except:
+                # If decoding fails, treat it as binary data
+            payload_data = {
+                'binary_data': list(msg.payload)  # Convert binary payload to a list of integers
+            }
+        
+        # Prepare data for ingestion
+        _LOGGER.debug("Ingesting data on topic %s: %s", str(msg.topic), payload_data)
+        data = {
+            'asset': self.asset,
+            'timestamp': utils.local_timestamp(),
+            'readings': payload_data
+        }
+        
+        # Use async_ingest callback to save data
+        await async_ingest.ingest_callback(c_callback, c_ingest_ref, data)
+
+
+    async def save_pds(self, msg):
+        """Store msg content to Fledge with support for binary and JSON payloads."""
+        try:
+            struct_format = (
+                '<'  # Little-endian specifier
+                '3f 3f 3f f 3f 3f f 3f 3f 3f f f f f f f f f f f f f f f 3f 3f 3f '
+                'f f f f f f f f f f f f f f f f f f f f f f f f f f f f f 3f 3f '
+                '3f f f f 3f 3f 3f f f f f B B B B B B H ?'
+            )
+
+           
+            #PDS parameters
+            field_names = [
+                "Voltage_PN1", "Voltage_PN2", "Voltage_PN3",
+                "Voltage_PP1", "Voltage_PP2", "Voltage_PP3",
+                "Current1", "Current2", "Current3",
+                "NeutralCurrent", "Frequency1", "Frequency2", "Frequency3",
+                "PowerFactor1", "PowerFactor2", "PowerFactor3",
+                "AveragePF", "ActivePower1", "ActivePower2", "ActivePower3",
+                "ReactivePower1", "ReactivePower2", "ReactivePower3",
+                "ApparentPower1", "ApparentPower2", "ApparentPower3",
+                "TotalActivePower", "TotalReactivePower", "TotalApparentPower",
+                "AngleVA_VB", "AngleVB_VC", "AngleVA_VC",
+                "AngleVA_IA", "AngleVB_IB", "AngleVC_IC",
+                "AngleIA_IB", "AngleIB_IC", "AngleIA_IC",
+                "ActiveEnergy1", "ActiveEnergy2", "ActiveEnergy3",
+                "ReactiveEnergy1", "ReactiveEnergy2", "ReactiveEnergy3",
+                "ApparentEnergy1", "ApparentEnergy2", "ApparentEnergy3",
+                "Accum_ActEnergy", "Accum_ReactEnergy", "Accum_ApprntEnergy",
+                "Total_ActEnergy", "Total_ReactEnergy", "Total_ApprntEnergy",
+                "ActImpEnergy_R", "ActExpEnergy_R", "ActImpEnergy_Y", "ActExpEnergy_Y",
+                "ActImpEnergy_B", "ActExpEnergy_B", "ReactEnergy_R_Q1", "ReactEnergy_R_Q2",
+                "ReactEnergy_R_Q3", "ReactEnergy_R_Q4", "ReactEnergy_Y_Q1", "ReactEnergy_Y_Q2",
+                "ReactEnergy_Y_Q3", "ReactEnergy_Y_Q4", "ReactEnergy_B_Q1", "ReactEnergy_B_Q2",
+                "ReactEnergy_B_Q3", "ReactEnergy_B_Q4", "ReactImpEnergy_R", "ReactExpEnergy_R",
+                "ReactImpEnergy_Y", "ReactExpEnergy_Y", "ReactImpEnergy_B", "ReactExpEnergy_B",
+                "AppExpEnergy_R", "AppExpEnergy_Y", "AppExpEnergy_B",
+                "ActImpCumEnergy", "ActExpCumEnergy", "AppImpEnergy_R", "AppImpEnergy_Y",
+                "AppImpEnergy_B", "AppImpcumEnergy", "AppExpcumEnergy",
+                "ReactiveCumQ1", "ReactiveCumQ2", "ReactiveCumQ3", "ReactiveCumQ4",
+                "VTHD1", "VTHD2", "VTHD3", "ITHD1", "ITHD2", "ITHD3",
+                "seconds", "minutes", "hours", "weekday", "date", "month", "year", "IsNlf"
+            ]
+
+            #Calculate struct size
+            struct_size = struct.calcsize(struct_format)
+
+            # Ensure payload size matches struct size
+            if len(msg.payload) != struct_size:
+                raise ValueError(f"Payload size {len(msg.payload)} does not match expected size {struct_size}.")
+
+
+            #Unpack the payload
+            unpacked_data = struct.unpack(struct_format, msg.payload)
+            
+            #convert into json payload
+            json_payload = {field_name: value for field_name, value in zip(field_names, unpacked_data)}
+
+           # Parse and format timestamp
+            timestamp_data = unpacked_data[-8:-1]
+            seconds, minutes, hours, weekday, date, month, year = timestamp_data
+            year = int(year) if year > 99 else 2000 + int(year)
+            formatted_timestamp = f"{year}-{int(month):02d}-{int(date):02d} {int(hours):02d}:{int(minutes):02d}:{int(seconds):02d}"
+            json_payload["timestamp"] = formatted_timestamp
+            
+            # Convert IsNlf to boolean
+            json_payload["IsNlf"] = bool(unpacked_data[-1])
+
+            #Assign to payload_data
+            payload_data = json_payload
+
         except:
                 # If decoding fails, treat it as binary data
             payload_data = {

@@ -67,7 +67,8 @@ services:
   mqtt-seed-stem-binary-emulator:
     container_name: og-mqtt-seed-stem-binary-emulator
     build:
-      context: https://${GITHUB_TOKEN}@github.com/OrxaGridMicroservices/SEED-STEM-Emulator.git#main
+      #context: https://${GITHUB_TOKEN}@github.com/OrxaGridMicroservices/SEED-STEM-Emulator.git#main
+       context: ../SEED-STEM-Emulator
     platform: linux/amd64
     command: python /app/main.py --data_type random --interval 20
 

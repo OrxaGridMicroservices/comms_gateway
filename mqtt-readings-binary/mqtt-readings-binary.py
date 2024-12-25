@@ -271,6 +271,10 @@ class MqttSubscriberClient(object):
         if "pdstop" in str(msg.topic):
             self.loop.run_until_complete(self.save_pds(msg))
 
+        #Save DDS data
+        if "ddstop" in str(msg.topic):
+            self.loop.run_until_complete(self.save_dds(msg))
+
     def on_subscribe(self, client, userdata, mid, granted_qos):
         pass
 
@@ -422,6 +426,65 @@ class MqttSubscriberClient(object):
             #Assign to payload_data
             payload_data = json_payload
 
+        except:
+                # If decoding fails, treat it as binary data
+            payload_data = {
+                'binary_data': list(msg.payload)  # Convert binary payload to a list of integers
+            }
+        
+        # Prepare data for ingestion
+        _LOGGER.debug("Ingesting data on topic %s: %s", str(msg.topic), payload_data)
+        data = {
+            'asset': self.asset,
+            'timestamp': utils.local_timestamp(),
+            'readings': payload_data
+        }
+        
+        # Use async_ingest callback to save data
+        await async_ingest.ingest_callback(c_callback, c_ingest_ref, data)
+
+    async def save_dds(self, msg):
+        """Store msg content to Fledge with support for binary and JSON payloads."""
+        try:
+            struct_format = (
+                '<'     # Little-endian specifier
+                '8B'    # 8 bytes for digital data (DigitalData)
+                'B B B B B B H'  # Timestamp components: seconds, minutes, hours, weekday, date, month, year
+                '?'     # Boolean for IsNlf
+            )
+            struct_size = struct.calcsize(struct_format)
+
+            # Ensure payload size matches struct size
+            if len(msg.payload) != struct_size:
+                raise ValueError(f"Payload size {len(msg.payload)} does not match expected size {struct_size}.")
+
+            # Unpack the payload
+            unpacked_data = struct.unpack(struct_format, msg.payload)
+
+            # Extract data
+            digital_data = unpacked_data[:8]
+            timestamp = unpacked_data[8:15]  # seconds, minutes, hours, weekday, date, month, year
+            is_nlf = unpacked_data[15]
+
+            # Handle year correctly
+            year = timestamp[6] if timestamp[6] > 99 else 2000 + timestamp[6]
+
+            # Format timestamp
+            formatted_timestamp = f"{year}-{timestamp[5]:02d}-{timestamp[4]:02d} {timestamp[2]:02d}:{timestamp[1]:02d}:{timestamp[0]:02d}"
+
+            # Build the JSON object
+            payload_data = {
+            "Digi1": digital_data[0],
+            "Digi2": digital_data[1],
+            "Digi3": digital_data[2],
+            "Digi4": digital_data[3],
+            "Digi5": digital_data[4],
+            "Digi6": digital_data[5],
+            "Digi7": digital_data[6],
+            "Digi8": digital_data[7],
+            "timestamp": formatted_timestamp,
+            "IsNlf": is_nlf
+            }
         except:
                 # If decoding fails, treat it as binary data
             payload_data = {

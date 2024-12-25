@@ -271,6 +271,14 @@ class MqttSubscriberClient(object):
         if "pdstop" in str(msg.topic):
             self.loop.run_until_complete(self.save_pds(msg))
 
+        #Save DDS data
+        if "ddstop" in str(msg.topic):
+            self.loop.run_until_complete(self.save_dds(msg))
+        
+        #Save PQ data
+        if "pqstop" in str(msg.topic):
+            self.loop.run_until_complete(self.save_pq(msg))
+
     def on_subscribe(self, client, userdata, mid, granted_qos):
         pass
 
@@ -430,6 +438,179 @@ class MqttSubscriberClient(object):
         
         # Prepare data for ingestion
         _LOGGER.debug("Ingesting data on topic %s: %s", str(msg.topic), payload_data)
+        data = {
+            'asset': self.asset,
+            'timestamp': utils.local_timestamp(),
+            'readings': payload_data
+        }
+        
+        # Use async_ingest callback to save data
+        await async_ingest.ingest_callback(c_callback, c_ingest_ref, data)
+
+    async def save_dds(self, msg):
+        """Store msg content to Fledge with support for binary and JSON payloads."""
+        try:
+            struct_format = (
+                '<'     # Little-endian specifier
+                '8B'    # 8 bytes for digital data (DigitalData)
+                'B B B B B B H'  # Timestamp components: seconds, minutes, hours, weekday, date, month, year
+                '?'     # Boolean for IsNlf
+            )
+            struct_size = struct.calcsize(struct_format)
+
+            # Ensure payload size matches struct size
+            if len(msg.payload) != struct_size:
+                raise ValueError(f"Payload size {len(msg.payload)} does not match expected size {struct_size}.")
+
+            # Unpack the payload
+            unpacked_data = struct.unpack(struct_format, msg.payload)
+
+            # Extract data
+            digital_data = unpacked_data[:8]
+            timestamp = unpacked_data[8:15]  # seconds, minutes, hours, weekday, date, month, year
+            is_nlf = unpacked_data[15]
+
+            # Handle year correctly
+            year = timestamp[6] if timestamp[6] > 99 else 2000 + timestamp[6]
+
+            # Format timestamp
+            formatted_timestamp = f"{year}-{timestamp[5]:02d}-{timestamp[4]:02d} {timestamp[2]:02d}:{timestamp[1]:02d}:{timestamp[0]:02d}"
+
+            # Build the JSON object
+            payload_data = {
+            "Digi1": digital_data[0],
+            "Digi2": digital_data[1],
+            "Digi3": digital_data[2],
+            "Digi4": digital_data[3],
+            "Digi5": digital_data[4],
+            "Digi6": digital_data[5],
+            "Digi7": digital_data[6],
+            "Digi8": digital_data[7],
+            "timestamp": formatted_timestamp,
+            "IsNlf": is_nlf
+            }
+        except:
+                # If decoding fails, treat it as binary data
+            payload_data = {
+                'binary_data': list(msg.payload)  # Convert binary payload to a list of integers
+            }
+        
+        # Prepare data for ingestion
+        _LOGGER.debug("Ingesting data on topic %s: %s", str(msg.topic), payload_data)
+        data = {
+            'asset': self.asset,
+            'timestamp': utils.local_timestamp(),
+            'readings': payload_data
+        }
+        
+        # Use async_ingest callback to save data
+        await async_ingest.ingest_callback(c_callback, c_ingest_ref, data)
+
+    async def save_pq(self, msg):
+        """Store msg content to Fledge with support for binary and JSON payloads."""
+        try:
+            struct_format = (
+                '<'                  # Little-endian specifier
+                '3f3f3f'             # minVtg[3], maxVtg[3], avgVtg[3]
+                '3f3f3f'             # minCur[3], maxCur[3], avgCur[3]
+                '3f3f3f'             # minFreq[3], maxFreq[3], avgFreq[3]
+                'HHHfHHHfHHHf'       # Dip[3 phases]: 3 integers + 1 float per phase
+                'HHHfHHHfHHHf'       # Swell[3 phases]: 3 integers + 1 float per phase
+                'HHHfHHHfHHHf'       # Intrp
+                'HffHffHff'          # RVC[3 phases]: 3 integers + 1 float per phase'
+                '3f3f3f3f'           # crestFactor[3], overCurrent[3], underVoltage[3], overVoltage[3]
+                '6f2f6f2f'           # symmCompVtg, unbCompVtg, symmCompCur, unbCompCur
+                '3f3f'               # vtgTHD[3], curTHD[3]
+                '6f'                 # UOD[3]
+                'H3fH3fH3f'          # flicker
+                '6f'                 # MSVValues[3]
+                'I'                  # eventRegister
+                'B B B B B B H'      # t_Timestamp
+                '?'                  # IsNlf
+            )
+
+            #PQ parameters
+            field_names = [
+                "MinVtg_R", "MinVtg_Y", "MinVtg_B", 
+                "MaxVtg_R", "MaxVtg_Y", "MaxVtg_B", 
+                "AvgVtg_R", "AvgVtg_Y", "AvgVtg_B", 
+                "MinCur_R", "MinCur_Y", "MinCur_B", 
+                "MaxCur_R", "MaxCur_Y", "MaxCur_B", 
+                "AvgCur_R", "AvgCur_Y", "AvgCur_B", 
+                "MinFreq_R", "MinFreq_Y", "MinFreq_B", 
+                "MaxFreq_R", "MaxFreq_Y", "MaxFreq_B", 
+                "AvgFreq_R", "AvgFreq_Y", "AvgFreq_B", 
+                "Dip_InstCount_R", "Dip_InstCount_Y", "Dip_InstCount_B", 
+                "Dip_ResVoltage_R", "Dip_ResVoltage_Y", "Dip_ResVoltage_B", 
+                "Dip_MomntCount_R", "Dip_MomntCount_Y", "Dip_MomntCount_B", 
+                "Dip_TempCount_R", "Dip_TempCount_Y", "Dip_TempCount_B", 
+                "Swell_InstCount_R", "Swell_InstCount_Y", "Swell_InstCount_B",
+                "Swell_ResVoltage_R", "Swell_ResVoltage_Y", "Swell_ResVoltage_B", 
+                "Swell_MomntCount_R", "Swell_MomntCount_Y", "Swell_MomntCount_B", 
+                "Swell_TempCount_R", "Swell_TempCount_Y", "Swell_TempCount_B", 
+                "Intrp_InstCount_R", "Intrp_InstCount_Y", "Intrp_InstCount_B", 
+                "Intrp_ResVoltage_R", "Intrp_ResVoltage_Y", "Intrp_ResVoltage_B", 
+                "Intrp_MomntCount_R", "Intrp_MomntCount_Y", "Intrp_MomntCount_B",
+                "Intrp_TempCount_R", "Intrp_TempCount_Y", "Intrp_TempCount_B", 
+                "Rvc_Count_R", "Rvc_Count_Y", "Rvc_Count_B", 
+                "Rvc_DeltaUss_R", "Rvc_DeltaUss_Y", "Rvc_DeltaUss_B", 
+                "Rvc_DeltaUmax_R", "Rvc_DeltaUmax_Y", "Rvc_DeltaUmax_B", 
+                "CrestFactor_R", "CrestFactor_Y", "CrestFactor_B", 
+                "OverCurrent_R", "OverCurrent_Y", "OverCurrent_B", 
+                "UnderVoltage_R", "UnderVoltage_Y", "UnderVoltage_B", 
+                "OverVoltage_R", "OverVoltage_Y", "OverVoltage_B", 
+                "SymCompVtg_NegSeqAng", "SymCompVtg_PosSeqAng", "SymCompVtg_PosSeqMag", 
+                "SymCompVtg_NegSeqMag", "SymCompVtg_ZeroSeqAng", "SymCompVtg_ZeroSeqMag", 
+                "UnbCompVtg_NegUnbPct", "UnbCompVtg_ZeroUnbPct", "SymCompCur_NegSeqAng", 
+                "SymCompCur_PosSeqAng", "SymCompCur_PosSeqMag", "SymCompCur_NegSeqMag", 
+                "SymCompCur_ZeroSeqAng", "SymCompCur_ZeroSeqMag", 
+                "UnbCompCur_NegUnbPct", "UnbCompCur_ZeroUnbPct",
+                "VtgTHD_R", "VtgTHD_Y", "VtgTHD_B", 
+                "CurTHD_R", "CurTHD_Y", "CurTHD_B", 
+                "Uod_R_OverDeviation", "Uod_R_UnderDeviation", "Uod_Y_OverDeviation", 
+                "Uod_Y_UnderDeviation", "Uod_B_OverDeviation", "Uod_B_UnderDeviation", 
+                "Flicker_FlickInst_Event", "Flicker_FlickInst_Level_R", "Flicker_FlickInst_Level_Y", 
+                "Flicker_FlickInst_Level_B", "Flicker_FlickShort_Event", "Flicker_FlickShort_Level_R", 
+                "Flicker_FlickShort_Level_Y", "Flicker_FlickShort_Level_B", "Flicker_FlickLong_Event", 
+                "Flicker_FlickLong_Level_R", "Flicker_FlickLong_Level_Y", "Flicker_FlickLong_Level_B", 
+                "EventRegister", "IsNlf"
+            ]
+
+            #Calculate struct size
+            struct_size = struct.calcsize(struct_format)
+
+            # Ensure payload size matches struct size
+            if len(msg.payload) != struct_size:
+                raise ValueError(f"Payload size {len(msg.payload)} does not match expected size {struct_size}.")
+
+
+            #Unpack the payload
+            unpacked_data = struct.unpack(struct_format, msg.payload)
+            
+            #convert into json payload
+            json_payload = {field_name: value for field_name, value in zip(field_names, unpacked_data)}
+
+           # Parse and format timestamp
+            timestamp_data = unpacked_data[-8:-1]
+            seconds, minutes, hours, weekday, date, month, year = timestamp_data
+            year = int(year) if year > 99 else 2000 + int(year)
+            formatted_timestamp = f"{year}-{int(month):02d}-{int(date):02d} {int(hours):02d}:{int(minutes):02d}:{int(seconds):02d}"
+            json_payload["timestamp"] = formatted_timestamp
+            
+            # Convert IsNlf to boolean
+            json_payload["IsNlf"] = bool(unpacked_data[-1])
+
+            #Assign to payload_data
+            payload_data = json_payload
+
+        except:
+                # If decoding fails, treat it as binary data
+            payload_data = {
+                'binary_data': list(msg.payload)  # Convert binary payload to a list of integers
+            }
+        
+        # Prepare data for ingestion
+        _LOGGER.debug("Ingesting PQ data on topic %s: %s", str(msg.topic), payload_data)
         data = {
             'asset': self.asset,
             'timestamp': utils.local_timestamp(),

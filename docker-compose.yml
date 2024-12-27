@@ -1,8 +1,10 @@
 # From https://github.com/RobRaesemann/FLEDGE-IOT-Docker
 services:
   fledge:
-    #build: .
-    image: robraesemann/fledge:1.9.2
+    #image: robraesemann/fledge:1.9.2
+    build: 
+      context: .
+      dockerfile: Dockerfile.fledge
     platform: linux/amd64
     container_name: og-fledge
     environment:
@@ -10,7 +12,7 @@ services:
       - TZ=${TZ}
     volumes:
       - fledge:/usr/local/fledge
-      - ./mqtt-readings-binary:/usr/local/fledge/python/fledge/plugins/south/mqtt-readings-binary
+      #- ./mqtt-readings-binary:/usr/local/fledge/python/fledge/plugins/south/mqtt-readings-binary
     ports:
       - 8081:8081 # Fledge management API
       - 6685:6685 # Fledge south API
@@ -55,12 +57,16 @@ services:
     build: ./mqtt-publisher
     container_name: og-mqtt-seed-stem-json-emulator
     environment:
-      - BROKER=mosquitto
-      - PORT=1883
-     # - TOPIC=sensor/data
-      - INTERVAL=5
-      - TZ=${TZ}
-      - MQTT_DEVICE=${MQTT_DEVICE}
+      PDS_INTERVAL: 60            # Default interval for PDS in seconds
+      ADS_INTERVAL: 10            # Default interval for ADS in seconds
+      MQTT_BROKER: "mosquitto"    # Replace with your MQTT broker hostname or IP
+      MQTT_PORT: 1883             # MQTT broker port
+      MQTT_DEVICE: ${MQTT_DEVICE} #list of MQTT devices to simulate data
+      TZ: ${TZ}
+    volumes:
+      - ./mqtt-publisher/config_pds.json:/app/config_pds.json
+      - ./mqtt-publisher/config_ads.json:/app/config_ads.json
+      - ./mqtt-publisher/config_dds.json:/app/config_dds.json
     depends_on:
       - mosquitto
 

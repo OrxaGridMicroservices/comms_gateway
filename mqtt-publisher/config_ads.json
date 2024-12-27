@@ -1,0 +1,28 @@
+{
+    "sensors": {
+        "ANASEN_CH1": {
+            "min": 1000,
+            "max": 2000
+        },
+        "ANASEN_CH2": {
+            "min": 1000,
+            "max": 2000
+        },
+        "ANASEN_CH3": {
+            "min": 1000,
+            "max": 2000
+        },
+        "ANASEN_CH4": {
+            "min": 1000,
+            "max": 2000
+        },
+        "ANASEN_CH5": {
+            "min": 1000,
+            "max": 2000
+        },
+        "ANASEN_CH6": {
+            "min": 1000,
+            "max": 2000
+        }
+    }
+}

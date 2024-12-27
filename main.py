@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, Query, Path, Body
 import requests
 import os
 from dotenv import load_dotenv
-from pydantic import BaseModel
+from pydantic import BaseModel,Field
 
 load_dotenv()
 
@@ -484,22 +484,33 @@ async def install_service(format: str = "repository", name: str = "fledge-servic
     return response.json()
 
 #Creating A Service
+class BrokerHostConfig(BaseModel):
+    value: str = Field(..., example="mosquitto")
+
+class TopicConfig(BaseModel):
+    value: str = Field(..., example="STMS2/pdstop")
+
+class AssetNameConfig(BaseModel):
+    value: str = Field(..., example="STMS1_pds_Feeder")
+
+class Config(BaseModel):
+    brokerHost: BrokerHostConfig
+    topic: TopicConfig
+    assetName: AssetNameConfig
+
+class ServicePayload(BaseModel):
+    name: str = Field(..., example="MSEDCL-STMS2")
+    type: str = Field(..., example="south")
+    plugin: str = Field(..., example="mqtt-readings-binary")
+    config: Config
+    enabled: bool = Field(..., example=True)
+    
 @app.post("/comm_gw/fledge/service", tags=["Creating A Service"], summary="Create a Service")
 async def create_service(
-    payload: dict = Body(
-        {
-            "name": "Sine",
-            "type": "south",
-            "enabled": "true",
-            "plugin": "sinusoid",
-            "config": {
-                "URL": {"value": None}
-            }
-        }
-    )
+    payload: ServicePayload
 ):
     url = f"{FLEDGE_BASE_URL}/fledge/service"
-    response = requests.post(url, json=payload)
+    response = requests.post(url, json=payload.dict())
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return response.json()

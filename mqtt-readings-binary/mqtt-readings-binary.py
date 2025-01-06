@@ -339,7 +339,8 @@ class MqttSubscriberClient(object):
                 "ANASEN_CH3": analog_data[2],
                 "ANASEN_CH4": analog_data[3],
                 "timestamp": formatted_timestamp,
-                "IsNlf": is_nlf
+                "IsNlf": is_nlf,
+                "topic": str(msg.topic)
             }
         except:
                 # If decoding fails, treat it as binary data
@@ -427,6 +428,9 @@ class MqttSubscriberClient(object):
             # Convert IsNlf to boolean
             json_payload["IsNlf"] = bool(unpacked_data[-1])
 
+            # send topic type
+            json_payload["topic"] = str(msg.topic)
+
             #Assign to payload_data
             payload_data = json_payload
 
@@ -487,7 +491,8 @@ class MqttSubscriberClient(object):
             "Digi7": digital_data[6],
             "Digi8": digital_data[7],
             "timestamp": formatted_timestamp,
-            "IsNlf": is_nlf
+            "IsNlf": is_nlf,
+            "topic": str(msg.topic)
             }
         except:
                 # If decoding fails, treat it as binary data
@@ -599,6 +604,9 @@ class MqttSubscriberClient(object):
             
             # Convert IsNlf to boolean
             json_payload["IsNlf"] = bool(unpacked_data[-1])
+
+             # send topic type
+            json_payload["topic"] = str(msg.topic)
 
             #Assign to payload_data
             payload_data = json_payload

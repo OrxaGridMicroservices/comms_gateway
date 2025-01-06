@@ -1,4 +1,5 @@
 # comms_gateway
+
 Bidirectional gateway for communications protocols used by power systems
 
 |                              | FledgeIoT                                                                                                           | FledgePower                                                                                                         | EdgeXFoundry                                                                                                   | Thingsboard Community Edition                                                                                                                   | Node-RED                                                                                           |
@@ -37,3 +38,8 @@ Bidirectional gateway for communications protocols used by power systems
 | Configuration Migration      | [✓](https://fledge-iot.readthedocs.io/en/latest/quick_start/backup.html)                                            | [✓](https://fledge-iot.readthedocs.io/en/latest/quick_start/backup.html)                                            | [✓](https://docs.edgexfoundry.org/3.1/V3TopLevelMigration/)                                                    | [✓](https://thingsboard.io/docs/user-guide/version-control/)                                                                                    | [✓](https://nodered.org/docs/user-guide/editor/workspace/import-export)                            |
 |                              |                                                                                                                     |                                                                                                                     |                                                                                                                |                                                                                                                                                 |                                                                                                    |
 | Comments                     |                                                                                                                     |                                                                                                                     |                                                                                                                |                                                                                                                                                 |                                                                                                    |
+
+\*\* Seeting for view all logs in version 2.6.0.
+we can see all logs in fledge version 2.6.0 by adjusting the settings. Navigate to Settings > Advanced > Minimum Log Level and set it to Debug.
+By default, this setting is set to Error
+![alt text](image.png)

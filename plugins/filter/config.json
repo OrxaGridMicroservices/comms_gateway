@@ -1,0 +1,73 @@
+{
+    "_comment": "Channels can be VDC/ADDC/Ambient,Oil level/OTI/OLTC",
+    "ANASEN_CH1":"VDC",
+    "ANASEN_CH2":"ADC",
+    "ANASEN_CH3":"Ambient",
+    "ANASEN_CH4": "OLTC",
+    "ANASEN_CH5": null,
+    "ANASEN_CH6": null,
+    "VDC_MULT_FACTOR": 0.0678,
+    "ADC_DIV_FACTOR": 297.9,
+    "ADC_SUB_FACTOR": 0,
+    "AMBIENT_MULT_FACTOR": 195,
+    "AMBIENT_DIV_FACTOR": 3000,
+    "OIL_LEVEL_MULT_FACTOR":1,
+    "OIL_LEVEL_DIV_FACTOR":1,
+    "OTI_MULT_FACTOR":1,
+    "OIL_DIV_FACTOR":1,
+    "WTI_MULT_FACTOR":1,
+    "WIL_DIV_FACTOR":1,
+    "OLTC_SUB_FACTOR":100,
+    "OLTC_TAP_CONFIG": [
+        {
+          "Tap": 1,
+          "Measured Value": 100,
+          "Expected Value": 34650
+        },
+        {
+          "Tap": 2,
+          "Measured Value": 260,
+          "Expected Value": 34237
+        },
+        {
+          "Tap": 3,
+          "Measured Value": 406,
+          "Expected Value": 33825
+        },
+        {
+          "Tap": 4,
+          "Measured Value": 545,
+          "Expected Value": 33412
+        },
+        {
+          "Tap": 5,
+          "Measured Value": 686,
+          "Expected Value": 33000
+        },
+        {
+          "Tap": 6,
+          "Measured Value": 825,
+          "Expected Value": 32587
+        },
+        {
+          "Tap": 7,
+          "Measured Value": 990,
+          "Expected Value": 32175
+        },
+        {
+          "Tap": 8,
+          "Measured Value": 1145,
+          "Expected Value": 31762
+        },
+        {
+          "Tap": 9,
+          "Measured Value": 1248,
+          "Expected Value": 31350
+        },
+        {
+          "Tap": 10,
+          "Measured Value": 1389,
+          "Expected Value": 30937
+        }
+      ]
+}

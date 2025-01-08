@@ -4,7 +4,7 @@ services:
     #image: robraesemann/fledge:1.9.2
     build:
       context: .
-      dockerfile: Dockerfile.power
+      dockerfile: Dockerfile.fledge_power
     platform: linux/amd64
     container_name: og-fledge
     environment:

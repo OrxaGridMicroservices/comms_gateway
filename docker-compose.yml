@@ -2,9 +2,9 @@
 services:
   fledge:
     #image: robraesemann/fledge:1.9.2
-    build: 
+    build:
       context: .
-      dockerfile: Dockerfile.fledge
+      dockerfile: Dockerfile.power
     platform: linux/amd64
     container_name: og-fledge
     environment:
@@ -39,11 +39,11 @@ services:
 
   fledge-api:
     container_name: og-fledge-api
-    build: 
+    build:
       context: .
       dockerfile: Dockerfile.api
     ports:
-      - "8000:8000"  # FastAPI Swagger
+      - "8000:8000" # FastAPI Swagger
     depends_on:
       fledge:
         condition: service_started
@@ -57,10 +57,10 @@ services:
     build: ./mqtt-publisher
     container_name: og-mqtt-seed-stem-json-emulator
     environment:
-      PDS_INTERVAL: 60            # Default interval for PDS in seconds
-      ADS_INTERVAL: 10            # Default interval for ADS in seconds
-      MQTT_BROKER: "mosquitto"    # Replace with your MQTT broker hostname or IP
-      MQTT_PORT: 1883             # MQTT broker port
+      PDS_INTERVAL: 60 # Default interval for PDS in seconds
+      ADS_INTERVAL: 10 # Default interval for ADS in seconds
+      MQTT_BROKER: "mosquitto" # Replace with your MQTT broker hostname or IP
+      MQTT_PORT: 1883 # MQTT broker port
       MQTT_DEVICE: ${MQTT_DEVICE} #list of MQTT devices to simulate data
       TZ: ${TZ}
     volumes:

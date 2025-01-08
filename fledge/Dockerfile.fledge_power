@@ -23,7 +23,7 @@ RUN apt-get update && apt-get dist-upgrade -y && apt-get install --no-install-re
     sed \
     wget \
     snmp \
-    cmake g++ make build-essential autoconf automake uuid-dev && \ 
+    cmake g++ make build-essential autoconf automake uuid-dev && \
     echo "=============================================="
 
 RUN mkdir ./fledge && \
@@ -70,7 +70,7 @@ RUN chmod +x /tmp/fledge-install-include.sh && \
 #     /tmp/fledge-install-dispatcher.sh && \
 #     echo '=============================================='
 
-# COPY fledge-install-notification.sh /tmp/
+# COPY plugins/fledge-install-notification.sh /tmp/
 
 # RUN chmod +x /tmp/fledge-install-notification.sh && \
 #     /tmp/fledge-install-notification.sh && \

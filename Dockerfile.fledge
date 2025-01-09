@@ -1,2 +1,2 @@
-FROM robraesemann/fledge:1.9.2
+FROM robraesemann/fledge:2.6.0
 COPY ./mqtt-readings-binary /usr/local/fledge/python/fledge/plugins/south/mqtt-readings-binary

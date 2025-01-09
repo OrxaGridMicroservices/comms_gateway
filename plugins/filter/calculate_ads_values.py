@@ -1,44 +1,29 @@
 import json
 
-vdc_mult_factor= 0.0
-adc_div_factor = 1.0
-amb_mult_factor = 0.0
-amb_div_factor = 1.0
-oltc_sub_factor = 0.0
-oltc_tap_config = []
-
+# Global variables for configuration values
+config_values = {}
 
 def set_filter_config(configuration):
-    global vdc_mult_factor, adc_div_factor,amb_mult_factor, amb_div_factor, oltc_sub_factor,oltc_tap_config
+    """
+    Reads the JSON configuration and stores the necessary values in global variables.
+    """
+    global config_values
     config = json.loads(configuration['config'])
     
-    #Get VDC mult factor
-    if ('VDC_MULT_FACTOR' in config):
-        vdc_mult_factor = config['VDC_MULT_FACTOR']
-   
-    #Get ADC Div factor
-    if ('ADC_DIV_FACTOR' in config):
-        adc_div_factor = config['ADC_DIV_FACTOR']
+    # Convert config to a flat dictionary for easier access
+    config_values = {k: v for d in config['config'] for k, v in d.items()}
 
-    #Get AMB mult factor
-    if ('AMBIENT_MULT_FACTOR' in config):
-        amb_mult_factor = config['AMBIENT_MULT_FACTOR']
+    config_values['ANALOG_CHANNELS'] = config['ANALOG_CHANNELS']
 
-    #Get AMB div factor
-    if ('AMBIENT_DIV_FACTOR' in config):
-        amb_div_factor = config['AMBIENT_DIV_FACTOR']
+    # Additional handling for OLTC_TAP_CONFIG since it's a list
+    config_values['OLTC_TAP_CONFIG'] = [d for d in config['config'] if 'OLTC_TAP_CONFIG' in d][0]['OLTC_TAP_CONFIG']
 
-    #Get OLTC Sub factor
-    if ('OLTC_SUB_FACTOR' in config):
-        oltc_sub_factor = config['OLTC_SUB_FACTOR']
-    
-     #Get OLTC Tap Configuration
-    if ('OLTC_TAP_CONFIG' in config):
-        oltc_tap_config = config.get("OLTC_TAP_CONFIG", [])
-    
     return True
 
-def find_tap_position(data,ana_ch,tapsubF):
+def find_tap_position(data, ana_ch, tapsubF):
+    """
+    Finds the tap position based on the measured value and tap configuration.
+    """
     for entry in data:
         tap_measured_value = entry["Measured Value"]
         
@@ -50,40 +35,123 @@ def find_tap_position(data,ana_ch,tapsubF):
         if lower_bound < tap_measured_value <= upper_bound:
             return entry["Tap"]
         
-    return None  # Return None if no tap position match
-    
+    return 0  # Return 0 if no tap position matches
 
 def doit(reading):
-    global vdc_mult_factor, adc_div_factor,amb_mult_factor, amb_div_factor, oltc_sub_factor, oltc_tap_config
-
-    # Extract channel values
-    ch1_vdc  = reading.get(b'ANASEN_CH1')
-    ch2_adc  = reading.get(b'ANASEN_CH2')
-    ch3_amb  = reading.get(b'ANASEN_CH3')
-    ch4_oltc = reading.get(b'ANASEN_CH4')
-
-    #Calculate battery Voltage
-    if ch1_vdc is not None:
-        vdc = ch1_vdc * vdc_mult_factor
-        reading[b'Battery_VDC'] = vdc
-
-    #Calculate battery Voltage
-    if ch2_adc is not None:
-        adc = round(ch2_adc/adc_div_factor,2)
-        reading[b'Battery_ADC'] = adc
-
-    #Calculate Ambient temperature
-    if ch3_amb is not None:
-        amb = round(ch3_amb * amb_mult_factor/amb_div_factor,2)
-        reading[b'AmbientTemp'] = amb
-
-    #Calculate Tap position 
-    if ch4_oltc is not None:
-        reading[b'TapPosition'] = find_tap_position(oltc_tap_config,ch4_oltc,oltc_sub_factor)
+    """
+    Processes the reading using the global configuration values.
+    """
+    global config_values
     
+    # Example channel mapping (ANALOG_CHANNELS from configuration)
+    analog_channels = config_values['ANALOG_CHANNELS']
+
+    for channel in analog_channels:
+        channel_key, channel_value = list(channel.items())[1]  # Get the key-value pair for the channel
+        reading_key = channel_key.encode()  # Encoding string to bytes for matching reading keys
+        
+        if reading_key in reading:
+             # Skip processing if the channel_value is None
+            if channel_value is None:
+                continue
+
+            # Normalize the channel value
+            normalized_value = channel_value.upper().replace(" ", "_")
+            
+            # Construct the keys for factors
+            mult_key = f"{normalized_value}_MULT_FACTOR"
+            div_key = f"{normalized_value}_DIV_FACTOR"
+            sub_key = f"{normalized_value}_SUB_FACTOR"
+            
+            result = reading[reading_key]
+
+            # Apply multiplier factor if it exists
+            if mult_key in config_values:
+                result *= config_values[mult_key]
+            
+            # Apply division factor if it exists
+            if div_key in config_values:
+                result /= config_values[div_key]
+            
+            # Apply subtraction factor if it exists
+            if sub_key in config_values:
+                result -= config_values[sub_key]
+            
+            # Special handling for OLTC: find and store the tap position
+            if normalized_value == "OLTC":
+                tap_position = find_tap_position(config_values['OLTC_TAP_CONFIG'], reading[reading_key], config_values.get("OLTC_SUB_FACTOR", 0))
+                reading[b'TAP_POSITION'] = tap_position
+            else:
+                # Store the calculated result back in the reading
+                reading[normalized_value.encode()] = round(result,2)
 
 # process one or more readings
 def calculate_ads_values(readings):
     for elem in list(readings):
         doit(elem['reading'])
     return readings
+
+# Main entry point for testing
+if __name__ == "__main__":
+
+    # Example configuration JSON
+    config_json = '''
+    {
+      "_comment": "Channels can be VDC/ADC/Ambient,Oil level/OTI/OLTC",
+      "ANALOG_CHANNELS": [
+        {"Channel": 1, "ANASEN_CH1": "VDC"},
+        {"Channel": 2, "ANASEN_CH2": "ADC"},
+        {"Channel": 3, "ANASEN_CH3": "Ambient"},
+        {"Channel": 4, "ANASEN_CH4": "OLTC"},
+        {"Channel": 5, "ANASEN_CH5": "OIL level"},
+        {"Channel": 6, "ANASEN_CH6": "OTI"}
+      ],
+      "config": [
+        {"VDC_MULT_FACTOR": 0.0678},
+        {"ADC_DIV_FACTOR": 297.9},
+        {"ADC_SUB_FACTOR": 0},
+        {"AMBIENT_MULT_FACTOR": 195},
+        {"AMBIENT_DIV_FACTOR": 3000},
+        {"OIL_LEVEL_MULT_FACTOR": 1},
+        {"OIL_LEVEL_DIV_FACTOR": 1},
+        {"OTI_MULT_FACTOR": 1},
+        {"OTI_DIV_FACTOR": 1},
+        {"WTI_MULT_FACTOR": 1},
+        {"WIL_DIV_FACTOR": 1},
+        {"OLTC_SUB_FACTOR": 100},
+        {
+          "OLTC_TAP_CONFIG": [
+            {"Tap": 1, "Measured Value": 100, "Expected Value": 34650},
+            {"Tap": 2, "Measured Value": 260, "Expected Value": 34237},
+            {"Tap": 3, "Measured Value": 406, "Expected Value": 33825},
+            {"Tap": 4, "Measured Value": 545, "Expected Value": 33412},
+            {"Tap": 5, "Measured Value": 686, "Expected Value": 33000},
+            {"Tap": 6, "Measured Value": 825, "Expected Value": 32587},
+            {"Tap": 7, "Measured Value": 990, "Expected Value": 32175},
+            {"Tap": 8, "Measured Value": 1145, "Expected Value": 31762},
+            {"Tap": 9, "Measured Value": 1248, "Expected Value": 31350},
+            {"Tap": 10, "Measured Value": 1389, "Expected Value": 30937}
+          ]
+        }
+      ]
+    }
+    '''
+    
+    # Example reading
+    reading = {
+        b'ANASEN_CH1': 1185.0,
+        b'ANASEN_CH2': 729.0,
+        b'ANASEN_CH3': 1503.0,
+        b'ANASEN_CH4': 1.0,
+        b'ANASEN_CH5': 1200.0,
+        b'ANASEN_CH6': 1400.0,
+        b'timestamp': '2025-01-07 16:17:21',
+        b'IsNlf': 0
+    }
+    
+    
+    # Load the configuration
+    set_filter_config(config_json)
+    # Process the reading
+    updated_reading = doit(reading)
+    print(updated_reading)

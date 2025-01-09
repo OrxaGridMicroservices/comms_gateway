@@ -19,13 +19,13 @@
 ##
 ## Author: Mark Riddoch, Akli Rahmoun
 ##
+FLEDGEDISPATCHVERSION=2.3.0-11
+RELEASE=nightly
+OPERATINGSYSTEM=ubuntu2004
+ARCHITECTURE=x86_64
+FLEDGELINK="http://archives.fledge-iot.org/$RELEASE/$OPERATINGSYSTEM/$ARCHITECTURE"
 
-git clone https://github.com/fledge-iot/fledge.git
-cd fledge
-sudo mkdir -p /usr/local/fledge/include/rapidjson/
-find C/common/ -name '*.h' -exec sudo cp -prv '{}' '/usr/local/fledge/include' ';'
-find C/plugins/ -name '*.h' -exec sudo cp -prv '{}' '/usr/local/fledge/include' ';'
-find C/services/ -name '*.h' -exec sudo cp -prv '{}' '/usr/local/fledge/include' ';'
-find C/tasks/ -name '*.h' -exec sudo cp -prv '{}' '/usr/local/fledge/include' ';'
-find C/thirdparty/Simple-Web-Server/ -name '*.hpp' -exec sudo cp -prv '{}' '/usr/local/fledge/include' ';'
-sudo cp -prv C/thirdparty/rapidjson/include/rapidjson/* /usr/local/fledge/include/rapidjson/
+wget --no-check-certificate ${FLEDGELINK}/fledge-service-dispatcher_${FLEDGEDISPATCHVERSION}_${ARCHITECTURE}.deb
+dpkg --unpack ./fledge-service-dispatcher_${FLEDGEDISPATCHVERSION}_${ARCHITECTURE}.deb
+apt-get install -yf
+apt-get clean -y

@@ -20,12 +20,7 @@
 ## Author: Mark Riddoch, Akli Rahmoun
 ##
 
-git clone https://github.com/fledge-iot/fledge.git
-cd fledge
-sudo mkdir -p /usr/local/fledge/include/rapidjson/
-find C/common/ -name '*.h' -exec sudo cp -prv '{}' '/usr/local/fledge/include' ';'
-find C/plugins/ -name '*.h' -exec sudo cp -prv '{}' '/usr/local/fledge/include' ';'
-find C/services/ -name '*.h' -exec sudo cp -prv '{}' '/usr/local/fledge/include' ';'
-find C/tasks/ -name '*.h' -exec sudo cp -prv '{}' '/usr/local/fledge/include' ';'
-find C/thirdparty/Simple-Web-Server/ -name '*.hpp' -exec sudo cp -prv '{}' '/usr/local/fledge/include' ';'
-sudo cp -prv C/thirdparty/rapidjson/include/rapidjson/* /usr/local/fledge/include/rapidjson/
+wget --no-check-certificate http://archives.fledge-iot.org/2.1.0/ubuntu2004/x86_64/fledge-rule-watchdog_2.1.0_x86_64.deb
+dpkg --unpack ./fledge-rule-watchdog_2.1.0_x86_64.deb
+apt-get install -yf
+apt-get clean -y

@@ -1,2 +1,2 @@
-fledge_south_mqtt-readings-binary_version=2.6.0
-fledge_version>=2.6
+fledge_south_mqtt-readings-binary_version=1.9.2
+fledge_version>=1.9

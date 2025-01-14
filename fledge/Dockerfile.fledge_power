@@ -57,6 +57,8 @@ RUN mkdir ./fledge && \
     apt-get clean -y && \
     rm -rf /var/lib/apt-get/lists/ && \
     echo '=============================================='
+	
+COPY ./mqtt-readings-binary /usr/local/fledge/python/fledge/plugins/south/mqtt-readings-binary
 
 COPY fledge/fledge-install-include.sh /tmp/
 

@@ -1,27 +1,19 @@
+# Step 1: Clone the Paho MQTT repository 
+git clone https://github.com/eclipse-paho/paho.mqtt.python.git
+cd paho.mqtt.python
+
+# Step 2: Install the Paho MQTT library using pip
+pip3 install .
 
 
+python3 -c "import paho.mqtt.client; print('Paho MQTT installed successfully')"
 
-git clone https://github.com/eclipse-paho/paho.mqtt.python
-cd paho.mqtt/paho.mqtt-python
-cd dependencies
-wget https://github.com/ARMmbed/mbedtls/archive/refs/tags/v2.16.12.tar.gz
-tar xf v2.16.12.tar.gz
-cd ..
-mkdir build
-cd build
-cmake -DBUILD_TESTS=NO -DBUILD_EXAMPLES=NO ..
-make
-sudo make install
-cd ../../..
+
 git clone https://github.com/fledge-iot/fledge-south-mqtt.git
-cd fledge-south-mqtt/mqtt
-mkdir build
-cd build
-cmake -DCMAKE_BUILD_TYPE=Release -DFLEDGE_INCLUDE=/usr/local/fledge/include/ -DFLEDGE_LIB=/usr/local/fledge/lib/ ..
-make
+cd fledge-south-mqtt
 
-if [ ! -d "${FLEDGE_ROOT}/plugins/south/mqtt" ] 
+if [ ! -d "${FLEDGE_ROOT}/python/fledge/plugins/south/mqtt-readings" ] 
 then
-    sudo mkdir -p $FLEDGE_ROOT/plugins/south/mqtt
+    sudo mkdir -p $FLEDGE_ROOT/python/fledge/plugins/south/mqtt-readings
 fi
-sudo cp libiec104.so $FLEDGE_ROOT/plugins/south/mqtt
+sudo cp -r python/fledge/plugins/south/mqtt-readings/ $FLEDGE_ROOT/python/fledge/plugins/south

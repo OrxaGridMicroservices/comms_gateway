@@ -3,8 +3,8 @@ FROM ubuntu:20.04
 LABEL author="Akli Rahmoun"
 
 # Set FLEDGE version, distribution, and platform
-ARG FLEDGEVERSION=2.1.0
-ARG RELEASE=2.1.0
+ARG FLEDGEVERSION=2.6.0
+ARG RELEASE=2.6.0
 ARG OPERATINGSYSTEM=ubuntu2004
 ARG ARCHITECTURE=x86_64
 ARG FLEDGELINK="http://archives.fledge-iot.org/${RELEASE}/${OPERATINGSYSTEM}/${ARCHITECTURE}"
@@ -93,13 +93,25 @@ RUN chmod +x /tmp/fledge-install-include.sh && \
   RUN chmod +x /tmp/fledge-south-iec104_build.sh && \
       /tmp/fledge-south-iec104_build.sh && \
       echo '=============================================='
+	  
+  COPY fledge/fledge-south-http_build.sh /tmp/
 
-# COPY fledge-north-iec104_build.sh /tmp/
+  RUN chmod +x /tmp/fledge-south-http_build.sh && \
+      /tmp/fledge-south-http_build.sh && \
+      echo '=============================================='
+	  
+  COPY fledge/fledge-south-mqtt_build.sh /tmp/
 
-# RUN chmod +x /tmp/fledge-north-iec104_build.sh && \
-#     /tmp/fledge-north-iec104_build.sh && \
-#     echo '=============================================='
+  RUN chmod +x /tmp/fledge-south-mqtt_build.sh && \
+      /tmp/fledge-south-mqtt_build.sh && \
+      echo '=============================================='
+	  
+  COPY fledge/fledge-north-iec104_build.sh /tmp/
 
+  RUN chmod +x /tmp/fledge-north-iec104_build.sh && \
+     /tmp/fledge-north-iec104_build.sh && \
+      echo '=============================================='
+	  
 # COPY fledge-north-auditsnmp_build.sh /tmp/
 
 # RUN chmod +x /tmp/fledge-north-auditsnmp_build.sh && \

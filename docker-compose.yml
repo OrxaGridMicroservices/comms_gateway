@@ -26,7 +26,7 @@ services:
       - TZ=${TZ}
     ports:
       - 80:80 # Fledge GUI
-
+      
   mosquitto:
     image: eclipse-mosquitto
     container_name: og-mosquitto

@@ -1,0 +1,21 @@
+{
+    "struct_format": "<8BB B B B B B H?",
+    "field_names": [
+        "DigitalData1",
+        "DigitalData2",
+        "DigitalData3",
+        "DigitalData4",
+        "DigitalData5",
+        "DigitalData6",
+        "DigitalData7",
+        "DigitalData8",
+        "seconds",
+        "minutes",
+        "hours",
+        "weekday",
+        "date",
+        "month",
+        "year",
+        "IsNlf"
+    ]
+}

@@ -1,0 +1,17 @@
+{
+    "struct_format": "<4fB B B B B B H?",
+    "field_names": [
+        "AnalogData1",
+        "AnalogData2",
+        "AnalogData3",
+        "AnalogData4",
+        "seconds",
+        "minutes",
+        "hours",
+        "weekday",
+        "date",
+        "month",
+        "year",
+        "IsNlf"
+    ]
+}

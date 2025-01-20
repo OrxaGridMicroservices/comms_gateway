@@ -63,6 +63,7 @@ from fledge.services.south import exceptions
 from fledge.services.south.ingest import Ingest
 import async_ingest
 import struct
+import json
 
 __author__ = "Praveen Garg"
 __copyright__ = "Copyright (c) 2020 Dianomic Systems, Inc."
@@ -306,12 +307,15 @@ class MqttSubscriberClient(object):
     async def save_ads(self, msg):
         """Store msg content to Fledge with support for binary and JSON payloads."""
         try:
-            struct_format = (
-                '<'     # Little-endian specifier
-                '4f'    # 4 floats for AnalogData
-                'B B B B B B H'  # Timestamp components: seconds, minutes, hours, weekday, date, month, year
-                '?'     # Boolean for IsNlf
-            )
+            
+            # Read the data back from the JSON file
+            with open('ads.json', 'r') as json_file:
+                pds_data = json.load(json_file)
+
+            # Access the struct_format and field_names
+            struct_format = pds_data['struct_format']
+            field_names = pds_data['field_names']
+
             struct_size = struct.calcsize(struct_format)
 
             # Ensure payload size matches struct size
@@ -363,47 +367,13 @@ class MqttSubscriberClient(object):
     async def save_pds(self, msg):
         """Store msg content to Fledge with support for binary and JSON payloads."""
         try:
-            struct_format = (
-                '<'  # Little-endian specifier
-                '3f 3f 3f f 3f 3f f 3f 3f 3f f f f f f f f f f f f f f f 3f 3f 3f '
-                'f f f f f f f f f f f f f f f f f f f f f f f f f f f f f 3f 3f '
-                '3f f f f 3f 3f 3f f f f f B B B B B B H ?'
-            )
+            # Read the data back from the JSON file
+            with open('pds.json', 'r') as json_file:
+                pds_data = json.load(json_file)
 
-           
-            #PDS parameters
-            field_names = [
-                "Voltage_PN1", "Voltage_PN2", "Voltage_PN3",
-                "Voltage_PP1", "Voltage_PP2", "Voltage_PP3",
-                "Current1", "Current2", "Current3",
-                "NeutralCurrent", "Frequency1", "Frequency2", "Frequency3",
-                "PowerFactor1", "PowerFactor2", "PowerFactor3",
-                "AveragePF", "ActivePower1", "ActivePower2", "ActivePower3",
-                "ReactivePower1", "ReactivePower2", "ReactivePower3",
-                "ApparentPower1", "ApparentPower2", "ApparentPower3",
-                "TotalActivePower", "TotalReactivePower", "TotalApparentPower",
-                "AngleVA_VB", "AngleVB_VC", "AngleVA_VC",
-                "AngleVA_IA", "AngleVB_IB", "AngleVC_IC",
-                "AngleIA_IB", "AngleIB_IC", "AngleIA_IC",
-                "ActiveEnergy1", "ActiveEnergy2", "ActiveEnergy3",
-                "ReactiveEnergy1", "ReactiveEnergy2", "ReactiveEnergy3",
-                "ApparentEnergy1", "ApparentEnergy2", "ApparentEnergy3",
-                "Accum_ActEnergy", "Accum_ReactEnergy", "Accum_ApprntEnergy",
-                "Total_ActEnergy", "Total_ReactEnergy", "Total_ApprntEnergy",
-                "ActImpEnergy_R", "ActExpEnergy_R", "ActImpEnergy_Y", "ActExpEnergy_Y",
-                "ActImpEnergy_B", "ActExpEnergy_B", "ReactEnergy_R_Q1", "ReactEnergy_R_Q2",
-                "ReactEnergy_R_Q3", "ReactEnergy_R_Q4", "ReactEnergy_Y_Q1", "ReactEnergy_Y_Q2",
-                "ReactEnergy_Y_Q3", "ReactEnergy_Y_Q4", "ReactEnergy_B_Q1", "ReactEnergy_B_Q2",
-                "ReactEnergy_B_Q3", "ReactEnergy_B_Q4", "ReactImpEnergy_R", "ReactExpEnergy_R",
-                "ReactImpEnergy_Y", "ReactExpEnergy_Y", "ReactImpEnergy_B", "ReactExpEnergy_B",
-                "AppExpEnergy_R", "AppExpEnergy_Y", "AppExpEnergy_B",
-                "ActImpCumEnergy", "ActExpCumEnergy", "AppImpEnergy_R", "AppImpEnergy_Y",
-                "AppImpEnergy_B", "AppImpcumEnergy", "AppExpcumEnergy",
-                "ReactiveCumQ1", "ReactiveCumQ2", "ReactiveCumQ3", "ReactiveCumQ4",
-                "VTHD1", "VTHD2", "VTHD3", "ITHD1", "ITHD2", "ITHD3",
-                "seconds", "minutes", "hours", "weekday", "date", "month", "year", "IsNlf"
-            ]
-
+            # Access the struct_format and field_names
+            struct_format = pds_data['struct_format']
+            field_names = pds_data['field_names']
             #Calculate struct size
             struct_size = struct.calcsize(struct_format)
 
@@ -454,12 +424,14 @@ class MqttSubscriberClient(object):
     async def save_dds(self, msg):
         """Store msg content to Fledge with support for binary and JSON payloads."""
         try:
-            struct_format = (
-                '<'     # Little-endian specifier
-                '8B'    # 8 bytes for digital data (DigitalData)
-                'B B B B B B H'  # Timestamp components: seconds, minutes, hours, weekday, date, month, year
-                '?'     # Boolean for IsNlf
-            )
+
+            with open('dds.json', 'r') as json_file:
+                dds_data = json.load(json_file)
+
+            # Access the struct_format and field_names
+            struct_format = dds_data['struct_format']
+            field_names = dds_data['field_names']
+
             struct_size = struct.calcsize(struct_format)
 
             # Ensure payload size matches struct size
@@ -514,73 +486,14 @@ class MqttSubscriberClient(object):
     async def save_pq(self, msg):
         """Store msg content to Fledge with support for binary and JSON payloads."""
         try:
-            struct_format = (
-                '<'                  # Little-endian specifier
-                '3f3f3f'             # minVtg[3], maxVtg[3], avgVtg[3]
-                '3f3f3f'             # minCur[3], maxCur[3], avgCur[3]
-                '3f3f3f'             # minFreq[3], maxFreq[3], avgFreq[3]
-                'HHHfHHHfHHHf'       # Dip[3 phases]: 3 integers + 1 float per phase
-                'HHHfHHHfHHHf'       # Swell[3 phases]: 3 integers + 1 float per phase
-                'HHHfHHHfHHHf'       # Intrp
-                'HffHffHff'          # RVC[3 phases]: 3 integers + 1 float per phase'
-                '3f3f3f3f'           # crestFactor[3], overCurrent[3], underVoltage[3], overVoltage[3]
-                '6f2f6f2f'           # symmCompVtg, unbCompVtg, symmCompCur, unbCompCur
-                '3f3f'               # vtgTHD[3], curTHD[3]
-                '6f'                 # UOD[3]
-                'H3fH3fH3f'          # flicker
-                '6f'                 # MSVValues[3]
-                'I'                  # eventRegister
-                'B B B B B B H'      # t_Timestamp
-                '?'                  # IsNlf
-            )
+            # Read the data back from the JSON file
+            with open('pqs.json', 'r') as json_file:
+                pqs_data = json.load(json_file)
 
-            #PQ parameters
-            field_names = [
-                "MinVtg_R", "MinVtg_Y", "MinVtg_B", 
-                "MaxVtg_R", "MaxVtg_Y", "MaxVtg_B", 
-                "AvgVtg_R", "AvgVtg_Y", "AvgVtg_B", 
-                "MinCur_R", "MinCur_Y", "MinCur_B", 
-                "MaxCur_R", "MaxCur_Y", "MaxCur_B", 
-                "AvgCur_R", "AvgCur_Y", "AvgCur_B", 
-                "MinFreq_R", "MinFreq_Y", "MinFreq_B", 
-                "MaxFreq_R", "MaxFreq_Y", "MaxFreq_B", 
-                "AvgFreq_R", "AvgFreq_Y", "AvgFreq_B", 
-                "Dip_InstCount_R", "Dip_InstCount_Y", "Dip_InstCount_B", 
-                "Dip_ResVoltage_R", "Dip_ResVoltage_Y", "Dip_ResVoltage_B", 
-                "Dip_MomntCount_R", "Dip_MomntCount_Y", "Dip_MomntCount_B", 
-                "Dip_TempCount_R", "Dip_TempCount_Y", "Dip_TempCount_B", 
-                "Swell_InstCount_R", "Swell_InstCount_Y", "Swell_InstCount_B",
-                "Swell_ResVoltage_R", "Swell_ResVoltage_Y", "Swell_ResVoltage_B", 
-                "Swell_MomntCount_R", "Swell_MomntCount_Y", "Swell_MomntCount_B", 
-                "Swell_TempCount_R", "Swell_TempCount_Y", "Swell_TempCount_B", 
-                "Intrp_InstCount_R", "Intrp_InstCount_Y", "Intrp_InstCount_B", 
-                "Intrp_ResVoltage_R", "Intrp_ResVoltage_Y", "Intrp_ResVoltage_B", 
-                "Intrp_MomntCount_R", "Intrp_MomntCount_Y", "Intrp_MomntCount_B",
-                "Intrp_TempCount_R", "Intrp_TempCount_Y", "Intrp_TempCount_B", 
-                "Rvc_Count_R", "Rvc_Count_Y", "Rvc_Count_B", 
-                "Rvc_DeltaUss_R", "Rvc_DeltaUss_Y", "Rvc_DeltaUss_B", 
-                "Rvc_DeltaUmax_R", "Rvc_DeltaUmax_Y", "Rvc_DeltaUmax_B", 
-                "CrestFactor_R", "CrestFactor_Y", "CrestFactor_B", 
-                "OverCurrent_R", "OverCurrent_Y", "OverCurrent_B", 
-                "UnderVoltage_R", "UnderVoltage_Y", "UnderVoltage_B", 
-                "OverVoltage_R", "OverVoltage_Y", "OverVoltage_B", 
-                "SymCompVtg_NegSeqAng", "SymCompVtg_PosSeqAng", "SymCompVtg_PosSeqMag", 
-                "SymCompVtg_NegSeqMag", "SymCompVtg_ZeroSeqAng", "SymCompVtg_ZeroSeqMag", 
-                "UnbCompVtg_NegUnbPct", "UnbCompVtg_ZeroUnbPct", "SymCompCur_NegSeqAng", 
-                "SymCompCur_PosSeqAng", "SymCompCur_PosSeqMag", "SymCompCur_NegSeqMag", 
-                "SymCompCur_ZeroSeqAng", "SymCompCur_ZeroSeqMag", 
-                "UnbCompCur_NegUnbPct", "UnbCompCur_ZeroUnbPct",
-                "VtgTHD_R", "VtgTHD_Y", "VtgTHD_B", 
-                "CurTHD_R", "CurTHD_Y", "CurTHD_B", 
-                "Uod_R_OverDeviation", "Uod_R_UnderDeviation", "Uod_Y_OverDeviation", 
-                "Uod_Y_UnderDeviation", "Uod_B_OverDeviation", "Uod_B_UnderDeviation", 
-                "Flicker_FlickInst_Event", "Flicker_FlickInst_Level_R", "Flicker_FlickInst_Level_Y", 
-                "Flicker_FlickInst_Level_B", "Flicker_FlickShort_Event", "Flicker_FlickShort_Level_R", 
-                "Flicker_FlickShort_Level_Y", "Flicker_FlickShort_Level_B", "Flicker_FlickLong_Event", 
-                "Flicker_FlickLong_Level_R", "Flicker_FlickLong_Level_Y", "Flicker_FlickLong_Level_B", 
-                "EventRegister", "IsNlf"
-            ]
-
+            # Access the struct_format and field_names
+            struct_format = pqs_data ['struct_format']
+            field_names = pqs_data ['field_names']
+            
             #Calculate struct size
             struct_size = struct.calcsize(struct_format)
 

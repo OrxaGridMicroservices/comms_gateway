@@ -1,6 +1,6 @@
 FROM ubuntu:20.04
 
-LABEL author="Akli Rahmoun"
+LABEL author="Orxagrid"
 
 # Set FLEDGE version, distribution, and platform
 ARG FLEDGEVERSION=2.6.0
@@ -58,7 +58,7 @@ RUN mkdir ./fledge && \
     rm -rf /var/lib/apt-get/lists/ && \
     echo '=============================================='
 	
-COPY ./mqtt-readings-binary /usr/local/fledge/python/fledge/plugins/south/mqtt-readings-binary
+COPY ./plugins/south/mqtt-readings-binary /usr/local/fledge/python/fledge/plugins/south/mqtt-readings-binary
 
 COPY fledge/fledge-install-include.sh /tmp/
 

@@ -309,12 +309,12 @@ class MqttSubscriberClient(object):
         try:
             
             # Read the data back from the JSON file
-            with open('ads.json', 'r') as json_file:
-                pds_data = json.load(json_file)
+            with open('/usr/local/fledge/python/fledge/plugins/south/mqtt-readings-binary/ads.json', 'r') as json_file:
+                ads_data = json.load(json_file)
 
             # Access the struct_format and field_names
-            struct_format = pds_data['struct_format']
-            field_names = pds_data['field_names']
+            struct_format = ads_data['struct_format']
+            field_names = ads_data['field_names']
 
             struct_size = struct.calcsize(struct_format)
 
@@ -368,7 +368,7 @@ class MqttSubscriberClient(object):
         """Store msg content to Fledge with support for binary and JSON payloads."""
         try:
             # Read the data back from the JSON file
-            with open('pds.json', 'r') as json_file:
+            with open('/usr/local/fledge/python/fledge/plugins/south/mqtt-readings-binary/pds.json', 'r') as json_file:
                 pds_data = json.load(json_file)
 
             # Access the struct_format and field_names
@@ -425,7 +425,7 @@ class MqttSubscriberClient(object):
         """Store msg content to Fledge with support for binary and JSON payloads."""
         try:
 
-            with open('dds.json', 'r') as json_file:
+            with open('/usr/local/fledge/python/fledge/plugins/south/mqtt-readings-binary/dds.json', 'r') as json_file:
                 dds_data = json.load(json_file)
 
             # Access the struct_format and field_names
@@ -487,13 +487,13 @@ class MqttSubscriberClient(object):
         """Store msg content to Fledge with support for binary and JSON payloads."""
         try:
             # Read the data back from the JSON file
-            with open('pqs.json', 'r') as json_file:
+            with open('/usr/local/fledge/python/fledge/plugins/south/mqtt-readings-binary/pqs.json', 'r') as json_file:
                 pqs_data = json.load(json_file)
 
             # Access the struct_format and field_names
             struct_format = pqs_data ['struct_format']
             field_names = pqs_data ['field_names']
-            
+
             #Calculate struct size
             struct_size = struct.calcsize(struct_format)
 
@@ -540,4 +540,3 @@ class MqttSubscriberClient(object):
         
         # Use async_ingest callback to save data
         await async_ingest.ingest_callback(c_callback, c_ingest_ref, data)
-

@@ -1,11 +1,8 @@
-git clone https://github.com/fledge-iot/fledge-north-http-c.git
-cd fledge-north-http-c
-mkdir build
-cd build
-cmake -DCMAKE_BUILD_TYPE=Release -DFLEDGE_INCLUDE=/usr/local/fledge/include/ -DFLEDGE_LIB=/usr/local/fledge/lib/ ..
-make
-if [ ! -d "${FLEDGE_ROOT}/plugins/north/http" ] 
+git clone https://github.com/fledge-iot/fledge-north-http.git
+cd fledge-north-http
+
+if [ ! -d "${FLEDGE_ROOT}/python/fledge/plugins/north/http_north" ] 
 then
-    sudo mkdir -p $FLEDGE_ROOT/plugins/north/http
+    sudo mkdir -p $FLEDGE_ROOT/python/fledge/plugins/north/http_north
 fi
-sudo cp libhttp.so $FLEDGE_ROOT/plugins/north/http
+sudo cp -r python/fledge/plugins/north/http_north/ $FLEDGE_ROOT/python/fledge/plugins/north

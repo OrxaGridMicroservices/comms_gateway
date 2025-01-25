@@ -113,6 +113,12 @@ RUN chmod +x /tmp/fledge-install-include.sh && \
   RUN chmod +x /tmp/fledge-north-iec104_build.sh && \
      /tmp/fledge-north-iec104_build.sh && \
       echo '=============================================='
+
+  COPY fledge/fledge-north-http_build.sh /tmp/
+
+  RUN chmod +x /tmp/fledge-north-http_build.sh && \
+        /tmp/fledge-north-http_build.sh && \
+        echo '=============================================='
 	  
 # COPY fledge-north-auditsnmp_build.sh /tmp/
 

@@ -23,6 +23,7 @@ RUN apt-get update && apt-get dist-upgrade -y && apt-get install --no-install-re
     sed \
     wget \
     snmp \
+    pkg-config \
     cmake g++ make build-essential autoconf automake uuid-dev && \
     echo "=============================================="
 
@@ -118,6 +119,12 @@ RUN chmod +x /tmp/fledge-install-include.sh && \
 
   RUN chmod +x /tmp/fledge-north-http_build.sh && \
         /tmp/fledge-north-http_build.sh && \
+        echo '=============================================='
+
+  COPY fledge/fedge-filter-python35_build.sh /tmp/
+
+  RUN chmod +x /tmp/fedge-filter-python35_build.sh && \
+        /tmp/fedge-filter-python35_build.sh && \
         echo '=============================================='
 	  
 # COPY fledge-north-auditsnmp_build.sh /tmp/

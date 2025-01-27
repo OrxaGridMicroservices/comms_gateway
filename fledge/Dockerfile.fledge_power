@@ -125,6 +125,12 @@ COPY fledge/fledge-north-http_build.sh /tmp/
 RUN chmod +x /tmp/fledge-north-http_build.sh &&
     /tmp/fledge-north-http_build.sh &&
     echo '=============================================='
+	
+COPY fledge/fledge-filter-python35_build.sh /tmp/
+
+  RUN chmod +x /tmp/fledge-filter-python35_build.sh && \
+      /tmp/fledge-filter-python35_build.sh && \
+      echo '=============================================='
 
 # COPY fledge-north-auditsnmp_build.sh /tmp/
 

@@ -22,6 +22,18 @@
     {"WIL_DIV_FACTOR": 1},
     {"OLTC_SUB_FACTOR": 100},
     {
+     "K1": 0.9756
+    },
+    {
+     "K2": 2.0409545766299285e-8
+    },
+    {
+     "K3": 0.223577
+    },
+    {
+     "K4": null
+    },
+    {
       "OLTC_TAP_CONFIG": [
         {"Tap": 1, "Measured Value": 100, "Expected Value": 34650},
         {"Tap": 2, "Measured Value": 260, "Expected Value": 34237},

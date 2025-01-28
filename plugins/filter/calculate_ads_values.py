@@ -76,7 +76,19 @@ def doit(reading):
             # Apply subtraction factor if it exists
             if sub_key in config_values:
                 result -= config_values[sub_key]
-            
+
+            if "K1" in config_values:
+                reading[b'K1'] = config_values["K1"]
+
+            if "K2" in config_values:
+                reading[b'K2'] = config_values["K2"]
+
+            if "K3" in config_values:
+                reading[b'K3'] = config_values["K3"]
+
+            if "K4" in config_values:
+                reading[b'K4'] = config_values["K4"]
+
             # Special handling for OLTC: find and store the tap position
             if normalized_value == "OLTC":
                 tap_position = find_tap_position(config_values['OLTC_TAP_CONFIG'], reading[reading_key], config_values.get("OLTC_SUB_FACTOR", 0))

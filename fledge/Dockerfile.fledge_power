@@ -79,7 +79,7 @@ RUN chmod +x /tmp/fledge-install-include.sh && \
 #     /tmp/fledge-install-notification.sh && \
 #     echo '=============================================='
 
-COPY fledge/plugins/fledge-install-notification.sh /tmp/
+COPY fledge/services/fledge-install-notification.sh /tmp/
 
 RUN chmod +x /tmp/fledge-install-notification.sh && \
     /tmp/fledge-install-notification.sh ${FLEDGENOTIFVERSION} ${RELEASE} ${OPERATINGSYSTEM} ${ARCHITECTURE} && \
@@ -98,43 +98,43 @@ RUN chmod +x /tmp/fledge-install-notification.sh && \
 #     /tmp/fledge-install-notify-customasset.sh && \
 #     echo '=============================================='
 
-  COPY fledge/fledge-south-iec104_build.sh /tmp/
+  COPY fledge/plugins/south/fledge-south-iec104_build.sh /tmp/
 
   RUN chmod +x /tmp/fledge-south-iec104_build.sh && \
       /tmp/fledge-south-iec104_build.sh && \
       echo '=============================================='
 	  
-  COPY fledge/fledge-south-http_build.sh /tmp/
+  COPY fledge/plugins/south/fledge-south-http_build.sh /tmp/
 
   RUN chmod +x /tmp/fledge-south-http_build.sh && \
       /tmp/fledge-south-http_build.sh && \
       echo '=============================================='
 	  
-  COPY fledge/fledge-south-mqtt_build.sh /tmp/
+  COPY fledge/plugins/south/fledge-south-mqtt_build.sh /tmp/
 
   RUN chmod +x /tmp/fledge-south-mqtt_build.sh && \
       /tmp/fledge-south-mqtt_build.sh && \
       echo '=============================================='
 	  
-  COPY fledge/fledge-north-iec104_build.sh /tmp/
+  COPY fledge/plugins/north/fledge-north-iec104_build.sh /tmp/
 
   RUN chmod +x /tmp/fledge-north-iec104_build.sh && \
      /tmp/fledge-north-iec104_build.sh && \
       echo '=============================================='
 
-  COPY fledge/fledge-north-http_build.sh /tmp/
+  COPY fledge/plugins/north/fledge-north-http_build.sh /tmp/
 
   RUN chmod +x /tmp/fledge-north-http_build.sh && \
         /tmp/fledge-north-http_build.sh && \
         echo '=============================================='
 
-  COPY fledge/fedge-filter-python35_build.sh /tmp/
+  COPY fledge/plugins/filter/fedge-filter-python35_build.sh /tmp/
 
   RUN chmod +x /tmp/fedge-filter-python35_build.sh && \
         /tmp/fedge-filter-python35_build.sh && \
         echo '=============================================='
 
-  COPY fledge/fedge-filter-delta_build.sh /tmp/
+  COPY fledge/plugins/filter/fedge-filter-delta_build.sh /tmp/
 
   RUN chmod +x /tmp/fedge-filter-delta_build.sh && \
         /tmp/fedge-filter-delta_build.sh && \

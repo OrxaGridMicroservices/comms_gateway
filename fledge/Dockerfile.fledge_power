@@ -82,7 +82,7 @@ RUN chmod +x /tmp/fledge-install-include.sh && \
 COPY fledge/services/fledge-install-notification.sh /tmp/
 
 RUN chmod +x /tmp/fledge-install-notification.sh && \
-    /tmp/fledge-install-notification.sh ${FLEDGENOTIFVERSION} ${RELEASE} ${OPERATINGSYSTEM} ${ARCHITECTURE} && \
+    /tmp/fledge-install-notification.sh && \
     echo '=============================================='
 
 
@@ -138,6 +138,12 @@ RUN chmod +x /tmp/fledge-install-notification.sh && \
 
   RUN chmod +x /tmp/fedge-filter-delta_build.sh && \
         /tmp/fedge-filter-delta_build.sh && \
+        echo '=============================================='
+
+  COPY fledge/plugins/notificationRule/fledge-notificationrule-average_build.sh /tmp/
+
+  RUN chmod +x /tmp/fledge-notificationrule-average_build.sh && \
+        /tmp/fledge-notificationrule-average_build.sh && \
         echo '=============================================='
 	  
 # COPY fledge-north-auditsnmp_build.sh /tmp/

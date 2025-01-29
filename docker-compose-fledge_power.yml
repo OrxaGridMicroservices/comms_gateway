@@ -74,7 +74,7 @@ services:
     build:
       context: https://${GITHUB_TOKEN}@github.com/OrxaGridMicroservices/SEED-STEM-Emulator.git#main
     platform: linux/amd64
-    command: python /app/main.py --data_type random --interval 20
+    command: python /app/main.py --data_type random --interval 10
 
     environment:
       - MQTT_BROKER=${MQTT_BROKER}

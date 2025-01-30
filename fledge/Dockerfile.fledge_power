@@ -46,7 +46,6 @@ RUN mkdir ./fledge && \
     mv /var/lib/dpkg/info/fledge.postinst /var/lib/dpkg/info/fledge.postinst.save && \
     # Configure the package and install dependencies.
     apt-get install -yf && \
-	apt-get update && apt-get install -y pkg-config && \
     # Manually run the post install script - creates certificates, installs python dependencies etc.
     mkdir -p /usr/local/fledge/data/extras/fogbench && \
     chmod +x /fledge.postinst && \

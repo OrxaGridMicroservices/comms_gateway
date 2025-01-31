@@ -135,6 +135,54 @@ RUN chmod +x /tmp/fledge-install-dispatcher.sh && \
   RUN chmod +x /tmp/fledge-south-modbustcp_build.sh && \
     /tmp/fledge-south-modbustcp_build.sh && \
     echo '=============================================='
+
+  COPY fledge/plugins/south/fledge-south-opcua_build.sh /tmp/
+
+  RUN chmod +x /tmp/fledge-south-opcua_build.sh && \
+      /tmp/fledge-south-opcua_build.sh && \
+      echo '=============================================='
+
+ COPY fledge/plugins/south/fledge-south-pt100_build.sh /tmp/
+
+ RUN chmod +x /tmp/fledge-south-pt100_build.sh && \
+    /tmp/fledge-south-pt100_build.sh && \ 
+    echo '=============================================='
+
+ COPY fledge/plugins/south/fledge-south-sinusoid_build.sh /tmp/
+
+ RUN chmod +x /tmp/fledge-south-sinusoid_build.sh && \
+    /tmp/fledge-south-sinusoid_build.sh && \
+    echo '=============================================='
+
+ COPY fledge/plugins/south/fledge-south-systeminfo_build.sh /tmp/
+
+ RUN chmod +x /tmp/fledge-south-systeminfo_build.sh && \
+    /tmp/fledge-south-systeminfo_build.sh && \
+    echo '=============================================='
+
+ COPY fledge/plugins/south/fledge-south-wind-turbine_build.sh /tmp/
+
+ RUN chmod +x /tmp/fledge-south-wind-turbine_build.sh && \
+       /tmp/fledge-south-wind-turbine_build.sh && \
+       echo '=============================================='
+
+ COPY fledge/plugins/south/fledge-south-csv_build.sh /tmp/
+
+ RUN chmod +x /tmp/fledge-south-csv_build.sh  && \
+        /tmp/fledge-south-csv_build.sh && \
+        echo '=============================================='
+
+ COPY fledge/plugins/south/fledge-south-CSV-Async_build.sh /tmp/
+
+ RUN chmod +x /tmp/fledge-south-CSV-Async_build.sh  && \
+        /tmp/fledge-south-CSV-Async_build.sh && \
+        echo '=============================================='
+
+ COPY fledge/plugins/south/fledge-south-csvplayback_build.sh /tmp/
+
+ RUN chmod +x /tmp/fledge-south-csvplayback_build.sh  && \
+        /tmp/fledge-south-csvplayback_build.sh && \
+        echo '=============================================='
 	  
   COPY fledge/plugins/north/fledge-north-iec104_build.sh /tmp/
 
@@ -153,18 +201,109 @@ RUN chmod +x /tmp/fledge-install-dispatcher.sh && \
   RUN chmod +x /tmp/fledge-north-http-c_build.sh && \
         /tmp/fledge-north-http-c_build.sh && \
         echo '=============================================='
+
+  COPY fledge/plugins/north/fledge-north-opcua_build.sh /tmp/
+
+  RUN chmod +x /tmp/fledge-north-opcua_build.sh && \
+        /tmp/fledge-north-opcua_build.sh && \ 
+        echo '=============================================='
+
+  COPY fledge/plugins/north/fledge-north-opcuaclient_build.sh /tmp/
+
+  RUN chmod +x /tmp/fledge-north-opcuaclient_build.sh && \
+        /tmp/fledge-north-opcuaclient_build.sh && \
+        echo '=============================================='
+
+ COPY fledge/plugins/north/fledge-north-thingspeak_build.sh /tmp/
+
+ RUN chmod +x /tmp/fledge-north-thingspeak_build.sh && \
+        /tmp/fledge-north-thingspeak_build.sh && \
+        echo '=============================================='
 	
-  COPY fledge/plugins/filter/fedge-filter-python35_build.sh /tmp/
+  COPY fledge/plugins/filter/fledge-filter-python35_build.sh /tmp/
 
-  RUN chmod +x /tmp/fedge-filter-python35_build.sh && \
-        /tmp/fedge-filter-python35_build.sh && \
+  RUN chmod +x /tmp/fledge-filter-python35_build.sh && \
+        /tmp/fledge-filter-python35_build.sh && \
         echo '=============================================='
 
-  COPY fledge/plugins/filter/fedge-filter-delta_build.sh /tmp/
+  COPY fledge/plugins/filter/fledge-filter-delta_build.sh /tmp/
 
-  RUN chmod +x /tmp/fedge-filter-delta_build.sh && \
-        /tmp/fedge-filter-delta_build.sh && \
+  RUN chmod +x /tmp/fledge-filter-delta_build.sh && \
+        /tmp/fledge-filter-delta_build.sh && \
         echo '=============================================='
+
+  COPY fledge/plugins/filter/fledge-filter-asset_build.sh /tmp/
+
+  RUN chmod +x /tmp/fledge-filter-asset_build.sh && \
+        /tmp/fledge-filter-asset_build.sh && \
+        echo '=============================================='
+
+  COPY fledge/plugins/filter/fledge-filter-change_build.sh /tmp/
+
+  RUN chmod +x /tmp/fledge-filter-change_build.sh && \
+        /tmp/fledge-filter-change_build.sh && \
+        echo '=============================================='
+
+ COPY fledge/plugins/filter/fledge-filter-expression_build.sh /tmp/
+
+ RUN chmod +x /tmp/fledge-filter-expression_build.sh && \
+        /tmp/fledge-filter-expression_build.sh && \
+        echo '=============================================='
+
+ COPY fledge/plugins/filter/fledge-filter-fft_build.sh /tmp/
+
+ RUN chmod +x /tmp/fledge-filter-fft_build.sh && \
+        /tmp/fledge-filter-fft_build.sh && \
+        echo '=============================================='
+
+ COPY fledge/plugins/filter/fledge-filter-log_build.sh /tmp/
+
+ RUN chmod +x /tmp/fledge-filter-log_build.sh && \
+        /tmp/fledge-filter-log_build.sh && \
+        echo '=============================================='
+
+ COPY fledge/plugins/filter/fledge-filter-metadata_build.sh /tmp/
+
+ RUN chmod +x /tmp/fledge-filter-metadata_build.sh && \
+        /tmp/fledge-filter-metadata_build.sh && \
+        echo '=============================================='
+
+ COPY fledge/plugins/filter/fledge-filter-rate_build.sh /tmp/
+
+ RUN chmod +x /tmp/fledge-filter-rate_build.sh && \
+        /tmp/fledge-filter-rate_build.sh && \
+        echo '=============================================='
+
+ COPY fledge/plugins/filter/fledge-filter-rename_build.sh /tmp/
+
+ RUN chmod +x /tmp/fledge-filter-rename_build.sh && \
+        /tmp/fledge-filter-rename_build.sh && \
+        echo '=============================================='
+
+ COPY fledge/plugins/filter/fledge-filter-replace_build.sh /tmp/
+
+ RUN chmod +x /tmp/fledge-filter-replace_build.sh && \
+        /tmp/fledge-filter-replace_build.sh && \
+        echo '=============================================='
+
+ COPY fledge/plugins/filter/fledge-filter-scale_build.sh /tmp/
+
+ RUN chmod +x /tmp/fledge-filter-scale_build.sh && \
+        /tmp/fledge-filter-scale_build.sh && \
+        echo '=============================================='
+
+ COPY fledge/plugins/filter/fledge-filter-scale-set_build.sh /tmp/
+
+ RUN chmod +x /tmp/fledge-filter-scale-set_build.sh && \
+        /tmp/fledge-filter-scale-set_build.sh && \
+        echo '=============================================='
+
+ COPY fledge/plugins/filter/fledge-filter-threshold_build.sh /tmp/
+
+ RUN chmod +x /tmp/fledge-filter-threshold_build.sh && \
+        /tmp/fledge-filter-threshold_build.sh && \
+        echo '=============================================='
+
 
   COPY fledge/plugins/notificationRule/fledge-notificationrule-average_build.sh /tmp/
 

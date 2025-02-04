@@ -160,11 +160,11 @@ RUN chmod +x /tmp/fledge-install-dispatcher.sh && \
     /tmp/fledge-south-systeminfo_build.sh && \
     echo '=============================================='
 
- COPY fledge/plugins/south/fledge-south-wind-turbine_build.sh /tmp/
+#  COPY fledge/plugins/south/fledge-south-wind-turbine_build.sh /tmp/
 
- RUN chmod +x /tmp/fledge-south-wind-turbine_build.sh && \
-       /tmp/fledge-south-wind-turbine_build.sh && \
-       echo '=============================================='
+#  RUN chmod +x /tmp/fledge-south-wind-turbine_build.sh && \
+#        /tmp/fledge-south-wind-turbine_build.sh && \
+#        echo '=============================================='
 
  COPY fledge/plugins/south/fledge-south-csv_build.sh /tmp/
 

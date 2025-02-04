@@ -284,20 +284,28 @@ class MqttSubscriberClient(object):
                      str(msg.qos))
 
         #Save ADS data
-        if "adstop" in str(msg.topic):
-          self.loop.run_until_complete(self.save_ads(msg))
-        
+        if "adstop" in str(msg.topic) and "ph8" in str(msg.topic):
+          self.loop.run_until_complete(self.save_ads_ph8(msg))
+        elif "adstop" in str(msg.topic):
+          self.loop.run_until_complete(self.save_ads_ph7(msg))
+
         #Save PDS data
-        if "pdstop" in str(msg.topic):
-            self.loop.run_until_complete(self.save_pds(msg))
+        if "pdstop" in str(msg.topic) and "ph8" in str(msg.topic):
+            self.loop.run_until_complete(self.save_pds_ph8(msg))
+        elif "pdstop" in str(msg.topic):
+          self.loop.run_until_complete(self.save_pds_ph7(msg))
 
         #Save DDS data
-        if "ddstop" in str(msg.topic):
-            self.loop.run_until_complete(self.save_dds(msg))
+        if "ddstop" in str(msg.topic) and "ph8" in str(msg.topic):
+            self.loop.run_until_complete(self.save_dds_ph8(msg))
+        elif "ddstop" in str(msg.topic):
+          self.loop.run_until_complete(self.save_dds_ph7(msg))
         
         #Save PQ data
-        if "pqstop" in str(msg.topic):
-            self.loop.run_until_complete(self.save_pq(msg))
+        if "pqstop" in str(msg.topic) and "ph8" in str(msg.topic):
+            self.loop.run_until_complete(self.save_pq_ph8(msg))
+        elif "pqstop" in str(msg.topic):
+          self.loop.run_until_complete(self.save_pq_ph7(msg))
 
     def on_subscribe(self, client, userdata, mid, granted_qos):
         pass
@@ -341,7 +349,7 @@ class MqttSubscriberClient(object):
                return converted_msg
         _LOGGER.exception("Unable to convert payload '%s' to a suitable type", str(msg)) 
         
-    async def save_ads(self, msg):
+    async def save_ads_ph7(self, msg):
         """Store msg content to Fledge with support for binary and JSON payloads."""
         try:
             
@@ -400,8 +408,70 @@ class MqttSubscriberClient(object):
         # Use async_ingest callback to save data
         await async_ingest.ingest_callback(c_callback, c_ingest_ref, data)
 
+    async def save_ads_ph8(self, msg):
+        """Store msg content to Fledge with support for binary and JSON payloads."""
+        try:
+            
+            # Read the data back from the JSON file
+            with open('/usr/local/fledge/python/fledge/plugins/south/mqtt-readings-binary/ads_ph8.json', 'r') as json_file:
+                ads_data = json.load(json_file)
 
-    async def save_pds(self, msg):
+            # Access the struct_format and field_names
+            struct_format = ads_data['struct_format']
+            field_names = ads_data['field_names']
+
+            struct_size = struct.calcsize(struct_format)
+
+            # Ensure payload size matches struct size
+            if len(msg.payload) != struct_size:
+                raise ValueError(f"Payload size {len(msg.payload)} does not match expected size {struct_size}.")
+
+            # Unpack the payload
+            unpacked_data = struct.unpack(struct_format, msg.payload)
+
+            # Extract data
+            analog_data = unpacked_data[:6]
+            timestamp = unpacked_data[6:13]  # seconds, minutes, hours, weekday, date, month, year
+            is_nlf = unpacked_data[13]
+
+            # Handle year correctly
+            year = timestamp[6] if timestamp[6] > 99 else 2000 + timestamp[6]
+
+            # Format timestamp
+            formatted_timestamp = f"{year}-{timestamp[5]:02d}-{timestamp[4]:02d} {timestamp[2]:02d}:{timestamp[1]:02d}:{timestamp[0]:02d}"
+
+            # Build the JSON object
+            payload_data = {
+                "ANASEN_CH1": analog_data[0],
+                "ANASEN_CH2": analog_data[1],
+                "ANASEN_CH3": analog_data[2],
+                "ANASEN_CH4": analog_data[3],
+                "ANASEN_CH5": analog_data[4],
+                "ANASEN_CH6": analog_data[5],
+                "timestamp": formatted_timestamp,
+                "IsNlf": is_nlf,
+                "topic": str(msg.topic)
+            }
+        except:
+                # If decoding fails, treat it as binary data
+            payload_data = {
+                'binary_data': list(msg.payload)  # Convert binary payload to a list of integers
+            }
+        
+        # Prepare data for ingestion
+        _LOGGER.debug("Ingesting data on topic %s: %s", str(msg.topic), payload_data)
+        data = {
+            'asset': self.asset,
+            'timestamp': utils.local_timestamp(),
+            'readings': payload_data
+        }
+        
+        # Use async_ingest callback to save data
+        await async_ingest.ingest_callback(c_callback, c_ingest_ref, data)
+
+
+
+    async def save_pds_ph7(self, msg):
         """Store msg content to Fledge with support for binary and JSON payloads."""
         try:
             # Read the data back from the JSON file
@@ -458,7 +528,64 @@ class MqttSubscriberClient(object):
         # Use async_ingest callback to save data
         await async_ingest.ingest_callback(c_callback, c_ingest_ref, data)
 
-    async def save_dds(self, msg):
+    async def save_pds_ph8(self, msg):
+        """Store msg content to Fledge with support for binary and JSON payloads."""
+        try:
+            # Read the data back from the JSON file
+            with open('/usr/local/fledge/python/fledge/plugins/south/mqtt-readings-binary/pds_ph8.json', 'r') as json_file:
+                pds_data = json.load(json_file)
+
+            # Access the struct_format and field_names
+            struct_format = pds_data['struct_format']
+            field_names = pds_data['field_names']
+            #Calculate struct size
+            struct_size = struct.calcsize(struct_format)
+
+            # Ensure payload size matches struct size
+            if len(msg.payload) != struct_size:
+                raise ValueError(f"Payload size {len(msg.payload)} does not match expected size {struct_size}.")
+
+
+            #Unpack the payload
+            unpacked_data = struct.unpack(struct_format, msg.payload)
+            
+            #convert into json payload
+            json_payload = {field_name: value for field_name, value in zip(field_names, unpacked_data)}
+
+           # Parse and format timestamp
+            timestamp_data = unpacked_data[-8:-1]
+            seconds, minutes, hours, weekday, date, month, year = timestamp_data
+            year = int(year) if year > 99 else 2000 + int(year)
+            formatted_timestamp = f"{year}-{int(month):02d}-{int(date):02d} {int(hours):02d}:{int(minutes):02d}:{int(seconds):02d}"
+            json_payload["timestamp"] = formatted_timestamp
+            
+            # Convert IsNlf to boolean
+            json_payload["IsNlf"] = bool(unpacked_data[-1])
+
+            # send topic type
+            json_payload["topic"] = str(msg.topic)
+
+            #Assign to payload_data
+            payload_data = json_payload
+
+        except:
+                # If decoding fails, treat it as binary data
+            payload_data = {
+                'binary_data': list(msg.payload)  # Convert binary payload to a list of integers
+            }
+        
+        # Prepare data for ingestion
+        _LOGGER.debug("Ingesting data on topic %s: %s", str(msg.topic), payload_data)
+        data = {
+            'asset': self.asset,
+            'timestamp': utils.local_timestamp(),
+            'readings': payload_data
+        }
+        
+        # Use async_ingest callback to save data
+        await async_ingest.ingest_callback(c_callback, c_ingest_ref, data)
+
+    async def save_dds_ph7(self, msg):
         """Store msg content to Fledge with support for binary and JSON payloads."""
         try:
 
@@ -520,11 +647,145 @@ class MqttSubscriberClient(object):
         # Use async_ingest callback to save data
         await async_ingest.ingest_callback(c_callback, c_ingest_ref, data)
 
-    async def save_pq(self, msg):
+    async def save_dds_ph8(self, msg):
+        """Store msg content to Fledge with support for binary and JSON payloads."""
+        try:
+
+            with open('/usr/local/fledge/python/fledge/plugins/south/mqtt-readings-binary/dds_ph8.json', 'r') as json_file:
+                dds_data = json.load(json_file)
+
+            # Access the struct_format and field_names
+            struct_format = dds_data['struct_format']
+            field_names = dds_data['field_names']
+
+            struct_size = struct.calcsize(struct_format)
+
+            # Ensure payload size matches struct size
+            if len(msg.payload) != struct_size:
+                raise ValueError(f"Payload size {len(msg.payload)} does not match expected size {struct_size}.")
+
+            # Unpack the payload
+            unpacked_data = struct.unpack(struct_format, msg.payload)
+
+            # Extract data
+            digital_data = unpacked_data[:22]
+            timestamp = unpacked_data[22:29]  # seconds, minutes, hours, weekday, date, month, year
+            is_nlf = unpacked_data[29]
+
+            # Handle year correctly
+            year = timestamp[6] if timestamp[6] > 99 else 2000 + timestamp[6]
+
+            # Format timestamp
+            formatted_timestamp = f"{year}-{timestamp[5]:02d}-{timestamp[4]:02d} {timestamp[2]:02d}:{timestamp[1]:02d}:{timestamp[0]:02d}"
+
+            # Build the JSON object
+            payload_data = {
+            "Digi1": digital_data[0],
+            "Digi2": digital_data[1],
+            "Digi3": digital_data[2],
+            "Digi4": digital_data[3],
+            "Digi5": digital_data[4],
+            "Digi6": digital_data[5],
+            "Digi7": digital_data[6],
+            "Digi8": digital_data[7],
+            "Digi9": digital_data[8],
+            "Digi10": digital_data[9],
+            "Digi11": digital_data[10],
+            "Digi12": digital_data[11],
+            "Digi13": digital_data[12],
+            "Digi14": digital_data[13],
+            "Digi15": digital_data[14],
+            "Digi16": digital_data[15],
+            "Digi17": digital_data[16],
+            "Digi18": digital_data[17],
+            "Digi19": digital_data[18],
+            "Digi20": digital_data[19],
+            "Digi21": digital_data[20],
+            "Digi22": digital_data[21],
+            "timestamp": formatted_timestamp,
+            "IsNlf": is_nlf,
+            "topic": str(msg.topic)
+            }
+        except:
+                # If decoding fails, treat it as binary data
+            payload_data = {
+                'binary_data': list(msg.payload)  # Convert binary payload to a list of integers
+            }
+        
+        # Prepare data for ingestion
+        _LOGGER.debug("Ingesting data on topic %s: %s", str(msg.topic), payload_data)
+        data = {
+            'asset': self.asset,
+            'timestamp': utils.local_timestamp(),
+            'readings': payload_data
+        }
+        
+        # Use async_ingest callback to save data
+        await async_ingest.ingest_callback(c_callback, c_ingest_ref, data)
+
+    async def save_pq_ph7(self, msg):
         """Store msg content to Fledge with support for binary and JSON payloads."""
         try:
             # Read the data back from the JSON file
             with open('/usr/local/fledge/python/fledge/plugins/south/mqtt-readings-binary/pqs.json', 'r') as json_file:
+                pqs_data = json.load(json_file)
+
+            # Access the struct_format and field_names
+            struct_format = pqs_data ['struct_format']
+            field_names = pqs_data ['field_names']
+
+            #Calculate struct size
+            struct_size = struct.calcsize(struct_format)
+
+            # Ensure payload size matches struct size
+            if len(msg.payload) != struct_size:
+                raise ValueError(f"Payload size {len(msg.payload)} does not match expected size {struct_size}.")
+
+
+            #Unpack the payload
+            unpacked_data = struct.unpack(struct_format, msg.payload)
+            
+            #convert into json payload
+            json_payload = {field_name: value for field_name, value in zip(field_names, unpacked_data)}
+
+           # Parse and format timestamp
+            timestamp_data = unpacked_data[-8:-1]
+            seconds, minutes, hours, weekday, date, month, year = timestamp_data
+            year = int(year) if year > 99 else 2000 + int(year)
+            formatted_timestamp = f"{year}-{int(month):02d}-{int(date):02d} {int(hours):02d}:{int(minutes):02d}:{int(seconds):02d}"
+            json_payload["timestamp"] = formatted_timestamp
+            
+            # Convert IsNlf to boolean
+            json_payload["IsNlf"] = bool(unpacked_data[-1])
+
+             # send topic type
+            json_payload["topic"] = str(msg.topic)
+
+            #Assign to payload_data
+            payload_data = json_payload
+
+        except:
+                # If decoding fails, treat it as binary data
+            payload_data = {
+                'binary_data': list(msg.payload)  # Convert binary payload to a list of integers
+            }
+        
+        # Prepare data for ingestion
+        _LOGGER.debug("Ingesting PQ data on topic %s: %s", str(msg.topic), payload_data)
+        data = {
+            'asset': self.asset,
+            'timestamp': utils.local_timestamp(),
+            'readings': payload_data
+        }
+        
+        # Use async_ingest callback to save data
+        await async_ingest.ingest_callback(c_callback, c_ingest_ref, data)
+
+    async def save_pq_ph8(self, msg):
+        """Store msg content to Fledge with support for binary and JSON payloads."""
+        try:
+            # Read the data back from the JSON file
+            with open('/usr/local/fledge/python/fledge/plugins/south/mqtt-readings-binary/pqs_ph8.json', 'r') as json_file:
                 pqs_data = json.load(json_file)
 
             # Access the struct_format and field_names

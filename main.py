@@ -18,6 +18,15 @@ class LoginPayload(BaseModel):
     username: str
     password: str
 
+def get_auth_token():
+    url = f"{FLEDGE_BASE_URL}/fledge/login"
+    payload = {"username": "admin", "password": "fledge"}
+    response = requests.post(url, json=payload)
+    if response.status_code == 200:
+        return response.json().get("token")
+    else:
+        raise Exception(f"Failed to authenticate: {response.text}")
+
 @app.post("/comm_gw/fledge/login", tags=["Authentication Management"],summary="return a token")
 async def login(payload: LoginPayload):
     url = f"{FLEDGE_BASE_URL}/fledge/login"
@@ -31,7 +40,8 @@ async def login(payload: LoginPayload):
 @app.put("/comm_gw/fledge/logout", tags=["Authentication Management"],summary="Terminate the current login session")
 async def logout():
     url = f"{FLEDGE_BASE_URL}/fledge/logout"
-    response = requests.put(url)
+    headers = {"Authorization": get_auth_token()}
+    response = requests.put(url,headers=headers)
 
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
@@ -39,7 +49,8 @@ async def logout():
 @app.put("/comm_gw/fledge/{user_id}/logout",tags=["Authentication Management"],summary="Terminate the login session for user’s all active sessions")
 async def logout_user(userid: int):
     url = f"{FLEDGE_BASE_URL}/fledge/{userid}/logout"
-    response = requests.put(url)
+    headers = {"Authorization": get_auth_token()}
+    response = requests.put(url,headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return response.json()
@@ -55,7 +66,8 @@ class NewUserPayload(BaseModel):
 @app.post("/comm_gw/fledge/admin/user", tags=["User Management"],summary="add a new user to Fledge’s user database")
 async def add_user(payload: NewUserPayload):
     url = f"{FLEDGE_BASE_URL}/fledge/admin/user"
-    response = requests.post(url, json=payload.dict())
+    headers = {"Authorization": get_auth_token()}
+    response = requests.post(url, json=payload.dict(),headers=headers)
 
     if response.status_code == 400:
         raise HTTPException(status_code=400, detail="Bad Request - Invalid Input")
@@ -71,7 +83,8 @@ async def add_user(payload: NewUserPayload):
 @app.get("/comm_gw/fledge/user", tags=["User Management"],summary="Retrieve data on all users")
 async def get_users():
     url = f"{FLEDGE_BASE_URL}/fledge/user"
-    response = requests.get(url)
+    headers = {"Authorization": get_auth_token()}
+    response = requests.get(url,headers=headers)
     if response.status_code == 400:
         raise HTTPException(status_code=400, detail="Bad Request - Invalid Input")
     elif response.status_code == 403:
@@ -88,7 +101,8 @@ class UpdateUserPayload(BaseModel):
 @app.put("/comm_gw/fledge/user", tags=["User Management"],summary="Allows a user to update their own user information")
 async def update_user(payload: UpdateUserPayload):
     url = f"{FLEDGE_BASE_URL}/fledge/user"
-    response = requests.put(url, json=payload.dict())
+    headers = {"Authorization": get_auth_token()}
+    response = requests.put(url, json=payload.dict(),headers=headers)
     if response.status_code == 400:
         raise HTTPException(status_code=400, detail="Bad Request - Invalid Input")
     elif response.status_code == 403:
@@ -106,7 +120,8 @@ class UpdatePasswordPayload(BaseModel):
 @app.put("/comm_gw/fledge/user/{userid}/password", tags=["User Management"],summary="change the password for the current user")
 async def update_password(userid: int, payload: UpdatePasswordPayload):
     url = f"{FLEDGE_BASE_URL}/fledge/user/{userid}/password"
-    response = requests.put(url, json=payload.dict())
+    headers = {"Authorization": get_auth_token()}
+    response = requests.put(url, json=payload.dict(),headers=headers)
     if response.status_code == 400:
         raise HTTPException(status_code=400, detail="Bad Request - Invalid Input")
     elif response.status_code == 403:
@@ -125,7 +140,8 @@ class UpdateAdminUserPayload(BaseModel):
 @app.put("/comm_gw/fledge/admin/user", tags=["User Management"],summary="An admin user can update any user’s information")
 async def admin_update_user(payload: UpdateAdminUserPayload):
     url = f"{FLEDGE_BASE_URL}/fledge/admin/user"
-    response = requests.put(url, json=payload.dict())
+    headers = {"Authorization": get_auth_token()}
+    response = requests.put(url, json=payload.dict(),headers=headers)
 
     if response.status_code == 400:
         raise HTTPException(status_code=400, detail="Incomplete or badly formed request payload")
@@ -141,7 +157,8 @@ async def admin_update_user(payload: UpdateAdminUserPayload):
 @app.delete("/comm_gw/fledge/admin/user/{userID}/delete", tags=["User Management"],summary="delete a user")
 async def delete_user(userID: int):
     url = f"{FLEDGE_BASE_URL}/fledge/admin/user/{userID}/delete"
-    response = requests.delete(url)
+    headers = {"Authorization": get_auth_token()}
+    response = requests.delete(url,headers=headers)
     if response.status_code == 400:
         raise HTTPException(status_code=400, detail="Bad Request - Invalid Input")
     elif response.status_code == 403:
@@ -167,8 +184,8 @@ async def get_audit(
         "source": source,
         "severity": severity
     }
-    
-    response = requests.get(url, params=params)
+    headers = {"Authorization": get_auth_token()}
+    response = requests.get(url, params=params, headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     
@@ -181,7 +198,8 @@ class CreateAuditPayload(BaseModel):
 
 @app.post("/comm_gw/fledge/audit", tags=["Audit Management"], summary="create a new audit trail entry.")
 async def create_audit(payload: CreateAuditPayload):
-    response = requests.post(f"{FLEDGE_BASE_URL}/fledge/audit", json=payload.dict())
+    headers = {"Authorization": get_auth_token()}
+    response = requests.post(f"{FLEDGE_BASE_URL}/fledge/audit", json=payload.dict(), headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return response.json()
@@ -191,7 +209,8 @@ async def create_audit(payload: CreateAuditPayload):
 
 @app.get("/comm_gw/fledge/category", tags=["Category Management"],summary="list of known categories in the configuration database")
 async def get_categories():
-    response = requests.get(f"{FLEDGE_BASE_URL}/fledge/category")
+    headers = {"Authorization": get_auth_token()}
+    response = requests.get(f"{FLEDGE_BASE_URL}/fledge/category",headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return response.json()
@@ -199,7 +218,8 @@ async def get_categories():
 @app.get("/comm_gw/fledge/category/{name}",tags=["Category Management"],summary="onfiguration items in the given category")
 async def get_category(name: str):
     url = f"{FLEDGE_BASE_URL}/fledge/category/{name}"
-    response = requests.get(url)
+    headers = {"Authorization": get_auth_token()}
+    response = requests.get(url,headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return response.json()
@@ -207,7 +227,8 @@ async def get_category(name: str):
 @app.get("/comm_gw/fledge/category/{name}/{item}",tags=["Category Management"],summary="configuration item in the given category")
 async def get_category_item(name: str = "rest_api", item: str = "httpsPort"):
     url = f"{FLEDGE_BASE_URL}/fledge/category/{name}/{item}"
-    response = requests.get(url)
+    headers = {"Authorization": get_auth_token()}
+    response = requests.get(url, headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return response.json()
@@ -215,7 +236,8 @@ async def get_category_item(name: str = "rest_api", item: str = "httpsPort"):
 @app.put("/comm_gw/fledge/category/{name}/{item}",tags=["Category Management"],summary="set the configuration item value in the given category")
 async def update_category_item(name: str, item: str, payload: dict={"value":"1996"}):
     url = f"{FLEDGE_BASE_URL}/fledge/category/{name}/{item}"
-    response = requests.put(url, json=payload)
+    headers = {"Authorization": get_auth_token()}
+    response = requests.put(url, json=payload,headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return response.json()
@@ -223,7 +245,8 @@ async def update_category_item(name: str, item: str, payload: dict={"value":"199
 @app.delete("/comm_gw/fledge/category/{name}/{item}/value",tags=["Category Management"],summary="unset the value of the configuration item in the given category")
 async def delete_category_item(name: str, item: str):
     url = f"{FLEDGE_BASE_URL}/fledge/category/{name}/{item}/value"
-    response = requests.delete(url)
+    headers = {"Authorization": get_auth_token()}
+    response = requests.delete(url, headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return response.json()
@@ -247,7 +270,8 @@ class CategoryPayload(BaseModel):
 @app.post("/comm_gw/fledge/category", tags=["Category Management"], summary="Create a new category")
 async def create_category(payload: CategoryPayload = CategoryPayload()):
     url = f"{FLEDGE_BASE_URL}/fledge/category"
-    response = requests.post(url, json=payload.dict())
+    headers = {"Authorization": get_auth_token()}
+    response = requests.post(url, json=payload.dict(),headers=headers)
     
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
@@ -262,7 +286,8 @@ async def get_tasks(
         "name": name,
         "state": state,
     }
-    response = requests.get(f"{FLEDGE_BASE_URL}/fledge/task", params=params)
+    headers = {"Authorization": get_auth_token()}
+    response = requests.get(f"{FLEDGE_BASE_URL}/fledge/task", params=params, headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return response.json()
@@ -275,7 +300,8 @@ async def get_latest_task(
         "name": name,
         "state": state,
     }
-    response = requests.get(f"{FLEDGE_BASE_URL}/fledge/task/latest", params=params)
+    headers = {"Authorization": get_auth_token()}
+    response = requests.get(f"{FLEDGE_BASE_URL}/fledge/task/latest", params=params, headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return response.json()
@@ -283,7 +309,8 @@ async def get_latest_task(
 @app.get("/comm_gw/fledge/task/{id}", tags=["Task Management"],summary=" task information for the given task")
 async def get_task(id: str):
     url = f"{FLEDGE_BASE_URL}/fledge/task/{id}"
-    response = requests.get(url)
+    headers = {"Authorization": get_auth_token()}
+    response = requests.get(url, headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return response.json()
@@ -291,7 +318,8 @@ async def get_task(id: str):
 @app.put("/comm_gw/fledge/task/{id}/cancel", tags=["Task Management"], summary="cancel a task")
 async def cancel_task(id: str):
     url = f"{FLEDGE_BASE_URL}/fledge/task/{id}/cancel"
-    response = requests.put(url)
+    headers = {"Authorization": get_auth_token()}
+    response = requests.put(url, headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return response.json()
@@ -301,7 +329,8 @@ async def cancel_task(id: str):
 @app.put("/comm_gw/fledge/shutdown", tags=["Fledge Management"], summary="Shut down Fledge")
 async def shutdown_fledge():
     url = f"{FLEDGE_BASE_URL}/fledge/shutdown"
-    response = requests.put(url)
+    headers = {"Authorization": get_auth_token()}
+    response = requests.put(url, headers=headers)
     
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
@@ -311,7 +340,8 @@ async def shutdown_fledge():
 @app.put("/comm_gw/fledge/restart", tags=["Fledge Management"], summary="Restart Fledge")
 async def restart_fledge():
     url = f"{FLEDGE_BASE_URL}/fledge/restart"
-    response = requests.put(url)
+    headers = {"Authorization": get_auth_token()}
+    response = requests.put(url, headers=headers)
     
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
@@ -320,7 +350,8 @@ async def restart_fledge():
 @app.get("/comm_gw/fledge/ping", tags=["Fledge Management"],summary="liveness of Fledge")
 async def ping():
     url = f"{FLEDGE_BASE_URL}/fledge/ping"
-    response = requests.get(url)
+    headers = {"Authorization": get_auth_token()}
+    response = requests.get(url, headers=headers)
 
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
@@ -331,7 +362,8 @@ async def ping():
 @app.get("/comm_gw/fledge/statistics", tags=["Statistics"], summary="Get Fledge Statistics")
 async def get_statistics():
     url = f"{FLEDGE_BASE_URL}/fledge/statistics"
-    response = requests.get(url)
+    headers = {"Authorization": get_auth_token()}
+    response = requests.get(url, headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return response.json()
@@ -341,7 +373,8 @@ async def get_statistics():
 @app.get("/comm_gw/fledge/statistics/history", tags=["Statistics"], summary="Get Fledge Statistics History")
 async def get_statistics_history(limit: int = Query(default=10, description="Number of records to fetch")):
     url = f"{FLEDGE_BASE_URL}/fledge/statistics/history?limit={limit}"
-    response = requests.get(url)
+    headers = {"Authorization": get_auth_token()}
+    response = requests.get(url, headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return response.json()
@@ -353,7 +386,8 @@ async def get_statistics_rate(
     periods: int = Query(..., description="Number of periods for the statistics")
 ):
     url = f"{FLEDGE_BASE_URL}/fledge/statistics/rate?statistics={statistics}&periods={periods}"
-    response = requests.get(url)
+    headers = {"Authorization": get_auth_token()}
+    response = requests.get(url, headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return response.json()
@@ -371,7 +405,8 @@ async def get_asset_track(
         "event": event,
         "service": service
     }
-    response = requests.get(url, params=params)
+    headers = {"Authorization": get_auth_token()}
+    response = requests.get(url, params=params, headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return response.json()
@@ -388,7 +423,8 @@ async def track_specific_asset_event(
     event_name: str = Path(..., description="Event name")
 ):
     url = f"{FLEDGE_BASE_URL}/fledge/track/service/{service_name}/asset/{asset_name}/event/{event_name}"
-    response = requests.put(url)
+    headers = {"Authorization": get_auth_token()}
+    response = requests.put(url, headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return {"message": "Asset tracking updated successfully"}
@@ -405,7 +441,8 @@ async def add_repository(
     )
 ):
     url = f"{FLEDGE_BASE_URL}/fledge/repository"
-    response = requests.post(url, json=payload)
+    headers = {"Authorization": get_auth_token()}
+    response = requests.post(url, json=payload, headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return {"message": "Repository configuration added successfully"}
@@ -414,7 +451,8 @@ async def add_repository(
 @app.put("/comm_gw/fledge/update", tags=["Repository Configuration"], summary="Update Packages")
 async def update_packages():
     url = f"{FLEDGE_BASE_URL}/fledge/update"
-    response = requests.put(url)
+    headers = {"Authorization": get_auth_token()}
+    response = requests.put(url, headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return {"message": "Packages updated successfully"}
@@ -424,7 +462,8 @@ async def update_packages():
 @app.get("/comm_gw/fledge/service", tags=["Service Status"], summary="List All Services")
 async def list_services():
     url = f"{FLEDGE_BASE_URL}/fledge/service"
-    response = requests.get(url)
+    headers = {"Authorization": get_auth_token()}
+    response = requests.get(url, headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return response.json()
@@ -432,7 +471,8 @@ async def list_services():
 @app.get("/comm_gw/fledge/service/filter", tags=["Service Status"], summary="Filter Services by Type")
 async def filter_services(service_type: str = Query(..., example="Southbound")):
     url = f"{FLEDGE_BASE_URL}/fledge/service?type={service_type}"
-    response = requests.get(url)
+    headers = {"Authorization": get_auth_token()}
+    response = requests.get(url, headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return response.json()
@@ -441,7 +481,8 @@ async def filter_services(service_type: str = Query(..., example="Southbound")):
 @app.get("/comm_gw/fledge/south", tags=["South and North Services"], summary="List South Services")
 async def list_south_services():
     url = f"{FLEDGE_BASE_URL}/fledge/south"
-    response = requests.get(url)
+    headers = {"Authorization": get_auth_token()}
+    response = requests.get(url, headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return response.json()
@@ -449,7 +490,8 @@ async def list_south_services():
 @app.get("/comm_gw/fledge/south", tags=["South and North Services"], summary="List North Services")
 async def list_south_services():
     url = f"{FLEDGE_BASE_URL}/fledge/north"
-    response = requests.get(url)
+    headers = {"Authorization": get_auth_token()}
+    response = requests.get(url, headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return response.json()
@@ -458,7 +500,8 @@ async def list_south_services():
 @app.get("/comm_gw/fledge/service/installed", tags=["Service Types"], summary="List Installed Services")
 async def list_installed_services():
     url = f"{FLEDGE_BASE_URL}/fledge/service/installed"
-    response = requests.get(url)
+    headers = {"Authorization": get_auth_token()}
+    response = requests.get(url, headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return response.json()
@@ -466,7 +509,8 @@ async def list_installed_services():
 @app.get("/comm_gw/fledge/service/available", tags=["Service Types"], summary="List Available Services")
 async def list_available_services():
     url = f"{FLEDGE_BASE_URL}/fledge/service/available"
-    response = requests.get(url)
+    headers = {"Authorization": get_auth_token()}
+    response = requests.get(url, headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return response.json()
@@ -478,7 +522,8 @@ async def install_service(format: str = "repository", name: str = "fledge-servic
         "format": format,
         "name": name
     }
-    response = requests.post(url, json=payload)
+    headers = {"Authorization": get_auth_token()}
+    response = requests.post(url, json=payload, headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return response.json()
@@ -510,7 +555,8 @@ async def create_service(
     payload: ServicePayload
 ):
     url = f"{FLEDGE_BASE_URL}/fledge/service"
-    response = requests.post(url, json=payload.dict())
+    headers = {"Authorization": get_auth_token()}
+    response = requests.post(url, json=payload.dict(),headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return response.json()
@@ -519,7 +565,8 @@ async def create_service(
 @app.put("/comm_gw/fledge/schedule/disable", tags=["Stopping and Starting Services"], summary="Stop a Service")
 async def stop_service(payload: dict = Body({"schedule_name": "Sine"})):
     url = f"{FLEDGE_BASE_URL}/fledge/schedule/disable"
-    response = requests.put(url, json=payload)
+    headers = {"Authorization": get_auth_token()}
+    response = requests.put(url, json=payload, headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return response.json()
@@ -527,7 +574,8 @@ async def stop_service(payload: dict = Body({"schedule_name": "Sine"})):
 @app.put("/comm_gw/fledge/schedule/enable", tags=["Stopping and Starting Services"], summary="Start a Service")
 async def start_service(payload: dict = Body({"schedule_name": "Sine"})):
     url = f"{FLEDGE_BASE_URL}/fledge/schedule/enable"
-    response = requests.put(url, json=payload)
+    headers = {"Authorization": get_auth_token()}
+    response = requests.put(url, json=payload, headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return response.json()
@@ -536,7 +584,8 @@ async def start_service(payload: dict = Body({"schedule_name": "Sine"})):
 @app.delete("/comm_gw/fledge/service/{service_name}", tags=["Deleting a Service"], summary="Delete a Service")
 async def delete_service(service_name: str):
     url = f"{FLEDGE_BASE_URL}/fledge/service/{service_name}"
-    response = requests.delete(url)
+    headers = {"Authorization": get_auth_token()}
+    response = requests.delete(url, headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return response.json()
@@ -545,7 +594,8 @@ async def delete_service(service_name: str):
 @app.get("/comm_gw/fledge/asset", tags=["Browsing Assets"], summary="List all assets")
 async def get_assets():
     url = f"{FLEDGE_BASE_URL}/fledge/asset"
-    response = requests.get(url)
+    headers = {"Authorization": get_auth_token()}
+    response = requests.get(url,headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return response.json()
@@ -569,8 +619,9 @@ async def get_asset_by_code(
         url += f"&hours={hours}"
     if previous:
         url += "&previous=true"
-    
-    response = requests.get(url)
+        
+    headers = {"Authorization": get_auth_token()}
+    response = requests.get(url, headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return response.json()
@@ -596,7 +647,8 @@ async def get_asset_reading(
     if previous:
         url += "&previous=true"
     
-    response = requests.get(url)
+    headers = {"Authorization": get_auth_token()}
+    response = requests.get(url, headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return response.json()
@@ -604,7 +656,8 @@ async def get_asset_reading(
 @app.get("/comm_gw/fledge/asset/{code}/{reading}/summary", tags=["Browsing Assets"], summary="Retrieve asset reading summary")
 async def get_asset_reading_summary(code: str, reading: str):
     url = f"{FLEDGE_BASE_URL}/fledge/asset/{code}/{reading}/summary"
-    response = requests.get(url)
+    headers = {"Authorization": get_auth_token()}
+    response = requests.get(url, headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return response.json()
@@ -612,7 +665,8 @@ async def get_asset_reading_summary(code: str, reading: str):
 @app.get("/comm_gw/fledge/asset/timespan", tags=["Browsing Assets"], summary="Retrieve asset timespan")
 async def get_asset_timespan():
     url = f"{FLEDGE_BASE_URL}/fledge/asset/timespan"
-    response = requests.get(url)
+    headers = {"Authorization": get_auth_token()}
+    response = requests.get(url, headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return response.json()
@@ -620,7 +674,8 @@ async def get_asset_timespan():
 @app.get("/comm_gw/fledge/asset/{code}/timespan", tags=["Browsing Assets"], summary="Retrieve asset timespan by code")
 async def get_asset_timespan_by_code(code: str):
     url = f"{FLEDGE_BASE_URL}/fledge/asset/{code}/timespan"
-    response = requests.get(url)
+    headers = {"Authorization": get_auth_token()}
+    response = requests.get(url, headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return response.json()
@@ -646,7 +701,8 @@ async def get_asset_reading_series(
     if previous:
         url += "&previous=true"
     
-    response = requests.get(url)
+    headers = {"Authorization": get_auth_token()}
+    response = requests.get(url, headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return response.json()
@@ -655,7 +711,8 @@ async def get_asset_reading_series(
 @app.delete("/comm_gw/fledge/asset", tags=["Purge Readings"], summary="Purge all asset readings")
 async def purge_all_assets():
     url = f"{FLEDGE_BASE_URL}/fledge/asset"
-    response = requests.delete(url)
+    headers = {"Authorization": get_auth_token()}
+    response = requests.delete(url, headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return {"message": "All asset readings purged successfully."}
@@ -663,7 +720,8 @@ async def purge_all_assets():
 @app.delete("/comm_gw/fledge/asset/{asset_name}", tags=["Purge Readings"], summary="Purge asset readings by name")
 async def purge_asset_by_name(asset_name: str):
     url = f"{FLEDGE_BASE_URL}/fledge/asset/{asset_name}"
-    response = requests.delete(url)
+    headers = {"Authorization": get_auth_token()}
+    response = requests.delete(url, headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return {"message": f"Asset readings for {asset_name} purged successfully."}
@@ -672,7 +730,8 @@ async def purge_asset_by_name(asset_name: str):
 @app.get("/comm_gw/fledge/service/{service_name}/persist", tags=["Persisted Data"], summary="Get persisted plugins for a service")
 async def get_persisted_plugins(service_name: str):
     url = f"{FLEDGE_BASE_URL}/fledge/service/{service_name}/persist"
-    response = requests.get(url)
+    headers = {"Authorization": get_auth_token()}
+    response = requests.get(url, headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return response.json()
@@ -680,7 +739,8 @@ async def get_persisted_plugins(service_name: str):
 @app.get("/comm_gw/fledge/service/{service_name}/plugin/{plugin_name}/data", tags=["Persisted Data"], summary="Get persisted data for the plugin")
 async def get_plugin_data(service_name: str, plugin_name: str):
     url = f"{FLEDGE_BASE_URL}/fledge/service/{service_name}/plugin/{plugin_name}/data"
-    response = requests.get(url)
+    headers = {"Authorization": get_auth_token()}
+    response = requests.get(url, headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return response.json()
@@ -688,7 +748,8 @@ async def get_plugin_data(service_name: str, plugin_name: str):
 @app.post("/comm_gw/fledge/service/{service_name}/plugin/{plugin_name}/data", tags=["Persisted Data"], summary="Post data to the plugin")
 async def post_plugin_data(service_name: str, plugin_name: str, data: dict):
     url = f"{FLEDGE_BASE_URL}/fledge/service/{service_name}/plugin/{plugin_name}/data"
-    response = requests.post(url, json=data)
+    headers = {"Authorization": get_auth_token()}
+    response = requests.post(url, json=data, headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return {"message": "Data posted to plugin successfully."}
@@ -696,7 +757,8 @@ async def post_plugin_data(service_name: str, plugin_name: str, data: dict):
 @app.delete("/comm_gw/fledge/service/{service_name}/plugin/{plugin_name}/data", tags=["Persisted Data"], summary="Delete persisted data for the plugin")
 async def delete_plugin_data(service_name: str, plugin_name: str):
     url = f"{FLEDGE_BASE_URL}/fledge/service/{service_name}/plugin/{plugin_name}/data"
-    response = requests.delete(url)
+    headers = {"Authorization": get_auth_token()}
+    response = requests.delete(url,headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return {"message": f"Persisted data for plugin {plugin_name} deleted successfully."}
@@ -706,23 +768,18 @@ async def delete_plugin_data(service_name: str, plugin_name: str):
 @app.get("/comm_gw/fledge/ping", tags=["Grafana"], summary="Ping the Fledge server")
 async def ping_fledge():
     url = f"{FLEDGE_BASE_URL}/fledge/ping"
-    response = requests.get(url)
+    headers = {"Authorization": get_auth_token()}
+    response = requests.get(url, headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return {"message": "Ping successful", "status_code": response.status_code}
 
-@app.get("/comm_gw/fledge/statistics/history", tags=["Grafana"], summary="Retrieve statistics history")
-async def get_statistics_history():
-    url = f"{FLEDGE_BASE_URL}/fledge/statistics/history"
-    response = requests.get(url)
-    if response.status_code != 200:
-        raise HTTPException(status_code=response.status_code, detail=response.text)
-    return response.json()
 
 @app.get("/comm_gw/fledge/asset/{asset_code}", tags=["Grafana"], summary="Retrieve asset data")
 async def get_asset_data(asset_code: str, limit: int = 2):
     url = f"{FLEDGE_BASE_URL}/fledge/asset/{asset_code}?limit={limit}"
-    response = requests.get(url)
+    headers = {"Authorization": get_auth_token()}
+    response = requests.get(url, headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return response.json()

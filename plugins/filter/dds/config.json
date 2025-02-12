@@ -1,0 +1,117 @@
+{
+    "_comment": "Channels can be CB/MasterTrip/OverCurrent/EarthFault/LRSwitch",
+    "DIGITAL_CHANNELS": [
+      {
+        "Channel": 1,
+        "Field": "Digi1"
+      },
+      {
+        "Channel": 2,
+        "Field": "Digi2"
+      },
+      {
+        "Channel": 3,
+        "Field": "Digi3"
+      },
+      {
+        "Channel": 4,
+        "Field": "Digi4"
+      },
+      {
+        "Channel": 5,
+        "Field": "Digi5"
+      },
+      {
+        "Channel": 6,
+        "Field": "Digi6"
+      },
+      {
+        "Channel": 7,
+        "Field": "Digi7"
+      },
+      {
+        "Channel": 8,
+        "Field": "Digi8"
+      }
+    ],
+    "DIGITAL_CHANNEL_NAME": [
+      {
+        "Digi1": "CB"
+      },
+      {
+        "Digi2": "CB"
+      },
+      {
+        "Digi3": "OC"
+      },
+      {
+        "Digi4": "EF"
+      },
+      {
+        "Digi5": null
+      },
+      {
+        "Digi6": null
+      },
+      {
+        "Digi7": null
+      },
+      {
+        "Digi8": null
+      }
+    ],
+    "DIGITAL_CHANNEL_TYPE": [
+      {
+        "Digi1": "DP1"
+      },
+      {
+        "Digi2": "DP1"
+      },
+      {
+        "Digi3": "SP1"
+      },
+      {
+        "Digi4": "SP1"
+      },
+      {
+        "Digi5": null
+      },
+      {
+        "Digi6": null
+      },
+      {
+        "Digi7": null
+      },
+      {
+        "Digi8": null
+      }
+    ],
+    "DIGITAL_CHANNEL_STATE": [
+      {
+        "DP1": [
+          {
+            "0": "INVALID"
+          },
+          {
+            "1": "OPEN"
+          },
+          {
+            "2": "CLOSE"
+          },
+          {
+            "3": "INTERMEDIATE"
+          }
+        ]
+      },
+      {
+        "SP1": [
+          {
+            "0": "OPEN"
+          },
+          {
+            "1": "CLOSE"
+          }
+        ]
+      }
+    ]
+  }

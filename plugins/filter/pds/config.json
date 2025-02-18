@@ -1,0 +1,95 @@
+{
+    "_comment": "Limit Violation PDS data",
+    "PARAMETERS": [
+      {
+        "Voltage_PN1": [
+          {
+            "LOWER_LIMIT": 5940
+          },
+          {
+            "UPPER_LIMIT": 7260
+          }
+        ]
+      },
+      {
+        "Voltage_PN2": [
+          {
+            "LOWER_LIMIT": 5940
+          },
+          {
+            "UPPER_LIMIT": 7260
+          }
+        ]
+      },
+      {
+        "Voltage_PN3": [
+          {
+            "LOWER_LIMIT": 5940
+          },
+          {
+            "UPPER_LIMIT": 7260
+          }
+        ]
+      },
+      {
+        "Current1": [
+          {
+            "LOWER_LIMIT": -1
+          },
+          {
+            "UPPER_LIMIT": 120
+          }
+        ]
+      },
+      {
+        "Current2": [
+          {
+            "LOWER_LIMIT": 0
+          },
+          {
+            "UPPER_LIMIT": 120
+          }
+        ]
+      },
+      {
+        "Current3": [
+          {
+            "LOWER_LIMIT": -1
+          },
+          {
+            "UPPER_LIMIT": 120
+          }
+        ]
+      },
+      {
+        "Frequency1": [
+          {
+            "LOWER_LIMIT": 49.5
+          },
+          {
+            "UPPER_LIMIT": 50.5
+          }
+        ]
+      },
+      {
+        "Frequency2": [
+          {
+            "LOWER_LIMIT": 49.5
+          },
+          {
+            "UPPER_LIMIT": 50.5
+          }
+        ]
+      },
+      {
+        "Frequency3": [
+          {
+            "LOWER_LIMIT": 49.5
+          },
+          {
+            "UPPER_LIMIT": 50.5
+          }
+        ]
+      }
+    ]
+  }

@@ -1,0 +1,95 @@
+{
+    "_comment": "Limit Violation PDS data",
+    "PARAMETERS": [
+      {
+        "MinVtg_R": [
+          {
+            "LOWER_LIMIT": 80
+          },
+          {
+            "UPPER_LIMIT": 120
+          }
+        ]
+      },
+      {
+        "MinVtg_Y": [
+          {
+            "LOWER_LIMIT": 80
+          },
+          {
+            "UPPER_LIMIT": 120
+          }
+        ]
+      },
+      {
+        "MinVtg_B": [
+          {
+            "LOWER_LIMIT": 80
+          },
+          {
+            "UPPER_LIMIT": 120
+          }
+        ]
+      },
+      {
+        "MaxVtg_R": [
+          {
+            "LOWER_LIMIT": 100
+          },
+          {
+            "UPPER_LIMIT": 200
+          }
+        ]
+      },
+      {
+        "MaxVtg_Y": [
+          {
+            "LOWER_LIMIT": 100
+          },
+          {
+            "UPPER_LIMIT": 200
+          }
+        ]
+      },
+      {
+        "MaxVtg_B": [
+          {
+            "LOWER_LIMIT": 100
+          },
+          {
+            "UPPER_LIMIT": 200
+          }
+        ]
+      },
+      {
+        "AvgVtg_R": [
+          {
+            "LOWER_LIMIT": 90
+          },
+          {
+            "UPPER_LIMIT": 110
+          }
+        ]
+      },
+      {
+        "AvgVtg_Y": [
+          {
+            "LOWER_LIMIT": 90
+          },
+          {
+            "UPPER_LIMIT": 110
+          }
+        ]
+      },
+      {
+        "AvgVtg_B": [
+          {
+            "LOWER_LIMIT": 90
+          },
+          {
+            "UPPER_LIMIT": 100
+          }
+        ]
+      }
+    ]
+  }

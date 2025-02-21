@@ -1,5 +1,5 @@
 {
-    "struct_format": "<3f 3f 3f f 3f 3f f 3f 3f 3f f f f f f f f f f f f f f f 3f 3f 3f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f 3f 3f 3f f f f 3f 3f 3f f f f f 3f f 3f f 3f 3f B B B B B B H ?",
+    "struct_format": "<3f 3f 3f f 3f 3f f 3f 3f 3f f f f f f f f f f f f f f f 3f 3f 3f f f f f f f f f f f f f f f f f f f f f f f f f f f f f f 3f 3f 3f f f f 3f 3f 3f f f f f 3f f 3f f 9f 3f B B B B B B H ?",
     "field_names": [
         "Voltage_PN1",
         "Voltage_PN2",
@@ -120,6 +120,12 @@
         "powFailDuration1", 
         "powFailDuration2", 
         "powFailDuration3",
+        "powFailLoadHr1", 
+        "powFailLoadHr2", 
+        "powFailLoadHr3",
+        "AuxPowerFailCount",
+        "AuxPowerFailPowerOnPeriod",
+        "AuxPowerFailPowerOffPeriod",
         "seconds",
         "minutes",
         "hours",

@@ -50,17 +50,17 @@ services:
       - FLEDGE_BASE_URL=${FLEDGE_BASE_URL}
       - TZ=${TZ}
     command: >
-     bash -c "
-      uvicorn main:app --host 0.0.0.0 --port 8000 & 
-      until curl -s -o /dev/null -w '%{http_code}' http://fledge:8081/fledge/ping | grep -q '200'; do
-        echo 'Waiting for Fledge to be online...';
-        sleep 2;
-      done;
-      echo 'Fledge is online. Proceeding with configuration...';
-        curl -X PUT 'http://fledge:8081/fledge/category/rest_api/authMethod' -H 'Content-Type: application/json' -d '{\"value\": \"password\"}' &&
-        curl -X PUT 'http://fledge:8081/fledge/category/rest_api/authentication' -H 'Content-Type: application/json' -d '{\"value\": \"mandatory\"}' &&
-        curl -X PUT 'http://fledge:8081/fledge/restart'&&
-        tail -f /dev/null"
+      bash -c "
+       uvicorn main1:app --host 0.0.0.0 --port 8000 & 
+       until curl -s -o /dev/null -w '%{http_code}' http://fledge:8081/fledge/ping | grep -q '200'; do
+         echo 'Waiting for Fledge to be online...';
+         sleep 2;
+       done;
+       echo 'Fledge is online. Proceeding with configuration...';
+         curl -X PUT 'http://fledge:8081/fledge/category/rest_api/authMethod' -H 'Content-Type: application/json' -d '{\"value\": \"password\"}' &&
+         curl -X PUT 'http://fledge:8081/fledge/category/rest_api/authentication' -H 'Content-Type: application/json' -d '{\"value\": \"mandatory\"}' &&
+         curl -X PUT 'http://fledge:8081/fledge/restart'&&
+         tail -f /dev/null"
 
   mqtt-seed-stem-json-emulator:
     build: ./mqtt-publisher

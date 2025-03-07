@@ -9,12 +9,6 @@ services:
     environment:
       - FLEDGE_ROOT=/usr/local/fledge
       - TZ=${TZ}
-      - FLEDGE_DB_ENGINE=postgres
-      - FLEDGE_DB_HOST=postgres
-      - FLEDGE_DB_PORT=5432
-      - FLEDGE_DB_NAME=fledge
-      - FLEDGE_DB_USER=fledge
-      - FLEDGE_DB_PASSWORD=fledgepassword
     volumes:
       - fledge:/usr/local/fledge
       #- ./mqtt-readings-binary:/usr/local/fledge/python/fledge/plugins/south/mqtt-readings-binary
@@ -76,34 +70,24 @@ services:
       - FLEDGE_BASE_URL=${FLEDGE_BASE_URL}
       - TZ=${TZ}
     command: >
-     bash -c "
-      uvicorn main:app --host 0.0.0.0 --port 8000 & 
-      until curl -s -o /dev/null -w '%{http_code}' http://fledge:8081/fledge/ping | grep -q '200'; do
-        echo 'Waiting for Fledge to be online...';
-        sleep 2;
-      done;
-      echo 'Fledge is online. Proceeding with configuration...';
-        curl -X PUT 'http://fledge:8081/fledge/category/rest_api/authMethod' -H 'Content-Type: application/json' -d '{\"value\": \"password\"}' &&
-        curl -X PUT 'http://fledge:8081/fledge/category/rest_api/authentication' -H 'Content-Type: application/json' -d '{\"value\": \"mandatory\"}' &&
-        curl -X PUT 'http://fledge:8081/fledge/restart'&&
-        tail -f /dev/null"
+      uvicorn main:app --host 0.0.0.0 --port 8000
 
-  mqtt-seed-stem-json-emulator:
-    build: ./mqtt-publisher
-    container_name: og-mqtt-seed-stem-json-emulator
-    environment:
-      PDS_INTERVAL: 60 # Default interval for PDS in seconds
-      ADS_INTERVAL: 10 # Default interval for ADS in seconds
-      MQTT_BROKER: "mosquitto" # Replace with your MQTT broker hostname or IP
-      MQTT_PORT: 1883 # MQTT broker port
-      MQTT_DEVICE: ${MQTT_DEVICE} #list of MQTT devices to simulate data
-      TZ: ${TZ}
-    volumes:
-      - ./mqtt-publisher/config_pds.json:/app/config_pds.json
-      - ./mqtt-publisher/config_ads.json:/app/config_ads.json
-      - ./mqtt-publisher/config_dds.json:/app/config_dds.json
-    depends_on:
-      - mosquitto
+  # mqtt-seed-stem-json-emulator:
+  #   build: ./mqtt-publisher
+  #   container_name: og-mqtt-seed-stem-json-emulator
+  #   environment:
+  #     PDS_INTERVAL: 60 # Default interval for PDS in seconds
+  #     ADS_INTERVAL: 10 # Default interval for ADS in seconds
+  #     MQTT_BROKER: "mosquitto" # Replace with your MQTT broker hostname or IP
+  #     MQTT_PORT: 1883 # MQTT broker port
+  #     MQTT_DEVICE: ${MQTT_DEVICE} #list of MQTT devices to simulate data
+  #     TZ: ${TZ}
+  #   volumes:
+  #     - ./mqtt-publisher/config_pds.json:/app/config_pds.json
+  #     - ./mqtt-publisher/config_ads.json:/app/config_ads.json
+  #     - ./mqtt-publisher/config_dds.json:/app/config_dds.json
+  #   depends_on:
+  #     - mosquitto
 
   mqtt-seed-stem-binary-emulator:
     container_name: og-mqtt-seed-stem-binary-emulator

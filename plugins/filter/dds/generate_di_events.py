@@ -65,76 +65,82 @@ def doit(reading, asset):
     
     # Decode byte keys in `reading`
     reading_c = {k.decode("utf-8") if isinstance(k, bytes) else k: v for k, v in reading.items()}
+
+    # Extract and decode topic safely
+    topic = reading_c.get("topic", b"").decode("utf-8") if isinstance(reading_c.get("topic"), bytes) else reading_c.get("topic", "")
+
+    # Check for "ddstop" in topic
+    if "ddstop" in topic:
    
-    if "Digi1" not in previous_values:
-        fetch_previous_values(asset)  # Fetch previous values if not already stored
-        
-    events = []
-    processed_dp1 = set()  # Track DP1 channels to prevent duplicate events
-
-    for channel in config_values['DIGITAL_CHANNELS']:
-        channel_id = f"Digi{channel['Channel']}"
-        
-        # Skip if channel is not configured with a valid name
-        if channel_id not in config_values['DIGITAL_CHANNEL_NAME']:
-            continue  
-
-        channel_name = config_values['DIGITAL_CHANNEL_NAME'][channel_id]
-        channel_type = config_values['DIGITAL_CHANNEL_TYPE'].get(channel_id, "SP1")
-        no_of_bits = 1  # Default SP1 to 1 bit
-
-        new_value = reading_c.get(channel_id, 0)
-        prev_value = previous_values.get(channel_id, 0)
-
-        if channel_type == "DP1":  # Handling DP1 event
-            if channel_id in processed_dp1:
-                continue  # Skip if already processed
-
-            second_channel_id = f"Digi{channel['Channel'] + 1}"
-            dp1_value = (new_value, reading_c.get(second_channel_id, 0))
-            int_value = dp1_value[0] * 1 + dp1_value[1] * 2  # Convert (0,1) to integer 1
-
-            state_name = config_values['DIGITAL_CHANNEL_STATE']['DP1'].get(int_value, "UNKNOWN")
-            no_of_bits = 2  # DP1 uses 2 bits
-
-            # Ensure DP1 is stored in the correct event slot (Digi1 position)
-            event_channel = channel_id
-            di_value_str = f"{dp1_value[0]}, {dp1_value[1]}"
-
-            # Mark DP1 channels as processed
-            processed_dp1.add(channel_id)
-            processed_dp1.add(second_channel_id)
+        if "Digi1" not in previous_values:
+            fetch_previous_values(asset)  # Fetch previous values if not already stored
             
-            prev_value = previous_values.get(channel_id, 0) * 1  + previous_values.get(second_channel_id, 0) * 2
+        events = []
+        processed_dp1 = set()  # Track DP1 channels to prevent duplicate events
 
-        else:  # SP1 (Single Point)
-            state_name = config_values['DIGITAL_CHANNEL_STATE']['SP1'].get(new_value, "UNKNOWN")
-            int_value = new_value
-            event_channel = channel_id
-            di_value_str = str(new_value)
-
-        # Generate event only if value changed
-        if int_value != prev_value:
-            event = {
-                "name": channel_name,
-                "channel": event_channel,
-                "di_value": int_value,
-                "state": state_name,
-                "No_of_bits": no_of_bits
-            }
-            events.append((channel['Channel'], event))  # Store event with channel position
+        for channel in config_values['DIGITAL_CHANNELS']:
+            channel_id = f"Digi{channel['Channel']}"
             
-    # Sort events by channel position before storing in `reading`
-    events.sort(key=lambda x: x[0])  
+            # Skip if channel is not configured with a valid name
+            if channel_id not in config_values['DIGITAL_CHANNEL_NAME']:
+                continue  
 
-    if events:
-        print("Generated Events:", [e[1] for e in events])
+            channel_name = config_values['DIGITAL_CHANNEL_NAME'][channel_id]
+            channel_type = config_values['DIGITAL_CHANNEL_TYPE'].get(channel_id, "SP1")
+            no_of_bits = 1  # Default SP1 to 1 bit
 
-    for channel_pos, event in events:
-        for key, value in event.items():
-            reading[bytes(f"{key}{channel_pos}", "utf-8")] = value  # Correct: Uses `channel_pos`
-    # Update previous values
-    previous_values = reading_c.copy()
+            new_value = reading_c.get(channel_id, 0)
+            prev_value = previous_values.get(channel_id, 0)
+
+            if channel_type == "DP1":  # Handling DP1 event
+                if channel_id in processed_dp1:
+                    continue  # Skip if already processed
+
+                second_channel_id = f"Digi{channel['Channel'] + 1}"
+                dp1_value = (new_value, reading_c.get(second_channel_id, 0))
+                int_value = dp1_value[0] * 1 + dp1_value[1] * 2  # Convert (0,1) to integer 1
+
+                state_name = config_values['DIGITAL_CHANNEL_STATE']['DP1'].get(int_value, "UNKNOWN")
+                no_of_bits = 2  # DP1 uses 2 bits
+
+                # Ensure DP1 is stored in the correct event slot (Digi1 position)
+                event_channel = channel_id
+                di_value_str = f"{dp1_value[0]}, {dp1_value[1]}"
+
+                # Mark DP1 channels as processed
+                processed_dp1.add(channel_id)
+                processed_dp1.add(second_channel_id)
+                
+                prev_value = previous_values.get(channel_id, 0) * 1  + previous_values.get(second_channel_id, 0) * 2
+
+            else:  # SP1 (Single Point)
+                state_name = config_values['DIGITAL_CHANNEL_STATE']['SP1'].get(new_value, "UNKNOWN")
+                int_value = new_value
+                event_channel = channel_id
+                di_value_str = str(new_value)
+
+            # Generate event only if value changed
+            if int_value != prev_value:
+                event = {
+                    "name": channel_name,
+                    "channel": event_channel,
+                    "di_value": int_value,
+                    "state": state_name,
+                    "No_of_bits": no_of_bits
+                }
+                events.append((channel['Channel'], event))  # Store event with channel position
+                
+        # Sort events by channel position before storing in `reading`
+        events.sort(key=lambda x: x[0])  
+
+        if events:
+            print("Generated Events:", [e[1] for e in events])
+
+        for channel_pos, event in events:
+            for key, value in event.items():
+                reading[bytes(f"{key}{channel_pos}", "utf-8")] = value  # Correct: Uses `channel_pos`
+        # Update previous values
+        previous_values = reading_c.copy()
     
 def generate_di_events(readings):
     """

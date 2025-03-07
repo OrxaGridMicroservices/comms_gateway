@@ -10,6 +10,7 @@ ARG ARCHITECTURE=x86_64
 ARG FLEDGELINK="http://archives.fledge-iot.org/${RELEASE}/${OPERATINGSYSTEM}/${ARCHITECTURE}"
 
 ENV FLEDGE_ROOT=/usr/local/fledge
+ENV TZ="Asia/Kolkata"
 
 # Avoid interactive questions when installing Kerberos
 ENV DEBIAN_FRONTEND=noninteractive
@@ -27,6 +28,7 @@ RUN apt-get update && apt-get dist-upgrade -y && apt-get install --no-install-re
        libgtest-dev \
     snmp \
     pkg-config \
+    postgresql postgresql-client \
     cmake g++ make build-essential autoconf automake uuid-dev && \
     echo "=============================================="
 

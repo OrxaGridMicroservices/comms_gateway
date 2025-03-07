@@ -43,59 +43,69 @@ def doit(reading):
     """
     global config_values
     
-    # Example channel mapping (ANALOG_CHANNELS from configuration)
-    analog_channels = config_values['ANALOG_CHANNELS']
 
-    for channel in analog_channels:
-        channel_key, channel_value = list(channel.items())[1]  # Get the key-value pair for the channel
-        reading_key = channel_key.encode()  # Encoding string to bytes for matching reading keys
-        
-        if reading_key in reading:
-             # Skip processing if the channel_value is None
-            if channel_value is None:
-                continue
+     # Decode byte keys in `reading`
+    reading_c = {k.decode("utf-8") if isinstance(k, bytes) else k: v for k, v in reading.items()}
 
-            # Normalize the channel value
-            normalized_value = channel_value.upper().replace(" ", "_")
+    # Extract and decode topic safely
+    topic = reading_c.get("topic", b"").decode("utf-8") if isinstance(reading_c.get("topic"), bytes) else reading_c.get("topic", "")
+
+    # Check for "ddstop" in topic
+    if "adstop" in topic:
+
+        # Example channel mapping (ANALOG_CHANNELS from configuration)
+        analog_channels = config_values['ANALOG_CHANNELS']
+
+        for channel in analog_channels:
+            channel_key, channel_value = list(channel.items())[1]  # Get the key-value pair for the channel
+            reading_key = channel_key.encode()  # Encoding string to bytes for matching reading keys
             
-            # Construct the keys for factors
-            mult_key = f"{normalized_value}_MULT_FACTOR"
-            div_key = f"{normalized_value}_DIV_FACTOR"
-            sub_key = f"{normalized_value}_SUB_FACTOR"
-            
-            result = reading[reading_key]
+            if reading_key in reading:
+                # Skip processing if the channel_value is None
+                if channel_value is None:
+                    continue
 
-            # Apply multiplier factor if it exists
-            if mult_key in config_values:
-                result *= config_values[mult_key]
-            
-            # Apply division factor if it exists
-            if div_key in config_values:
-                result /= config_values[div_key]
-            
-            # Apply subtraction factor if it exists
-            if sub_key in config_values:
-                result -= config_values[sub_key]
+                # Normalize the channel value
+                normalized_value = channel_value.upper().replace(" ", "_")
+                
+                # Construct the keys for factors
+                mult_key = f"{normalized_value}_MULT_FACTOR"
+                div_key = f"{normalized_value}_DIV_FACTOR"
+                sub_key = f"{normalized_value}_SUB_FACTOR"
+                
+                result = reading[reading_key]
 
-            if "K1" in config_values:
-                reading[b'K1'] = config_values["K1"]
+                # Apply multiplier factor if it exists
+                if mult_key in config_values:
+                    result *= config_values[mult_key]
+                
+                # Apply division factor if it exists
+                if div_key in config_values:
+                    result /= config_values[div_key]
+                
+                # Apply subtraction factor if it exists
+                if sub_key in config_values:
+                    result -= config_values[sub_key]
 
-            if "K2" in config_values:
-                reading[b'K2'] = config_values["K2"]
+                if "K1" in config_values:
+                    reading[b'K1'] = config_values["K1"]
 
-            if "K3" in config_values:
-                reading[b'K3'] = config_values["K3"]
+                if "K2" in config_values:
+                    reading[b'K2'] = config_values["K2"]
 
-            if "K4" in config_values:
-                reading[b'K4'] = config_values["K4"]
+                if "K3" in config_values:
+                    reading[b'K3'] = config_values["K3"]
 
-            # Special handling for OLTC: find and store the tap position
-            if normalized_value == "OLTC":
-                tap_position = find_tap_position(config_values['OLTC_TAP_CONFIG'], reading[reading_key], config_values.get("OLTC_SUB_FACTOR", 0))
-                reading[b'TAP_POSITION'] = tap_position
-            else:
-                # Store the calculated result back in the reading
-                reading[normalized_value.encode()] = round(result,2)
+                if "K4" in config_values:
+                    reading[b'K4'] = config_values["K4"]
+
+                # Special handling for OLTC: find and store the tap position
+                if normalized_value == "OLTC":
+                    tap_position = find_tap_position(config_values['OLTC_TAP_CONFIG'], reading[reading_key], config_values.get("OLTC_SUB_FACTOR", 0))
+                    reading[b'TAP_POSITION'] = tap_position
+                else:
+                    # Store the calculated result back in the reading
+                    reading[normalized_value.encode()] = round(result,2)
 
 # process one or more readings
 def calculate_ads_values(readings):

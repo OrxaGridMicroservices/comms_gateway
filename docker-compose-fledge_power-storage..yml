@@ -17,9 +17,10 @@ services:
       - 6685:6685 # Fledge south API
       - 6683:6683
       - 8080:8080 # Optional: Additional API if configured
-    depends_on:
-      postgres:
-        condition: service_healthy
+    entrypoint: >
+       sh -c "pg_isready -q || service postgresql start &&
+         sudo -u postgres createuser -d $(whoami) || echo 'User already exists' &&
+         /usr/local/fledge/start.sh"
 
   postgres:
     image: postgres:14

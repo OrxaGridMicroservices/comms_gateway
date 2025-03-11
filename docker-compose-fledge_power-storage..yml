@@ -11,7 +11,8 @@ services:
       - TZ=${TZ}
     volumes:
       - fledge:/usr/local/fledge
-      #- ./mqtt-readings-binary:/usr/local/fledge/python/fledge/plugins/south/mqtt-readings-binary
+      #- ./plugins/north/ws_north:/usr/local/fledge/python/fledge/plugins/north/ws_north
+
     ports:
       - 8081:8081 # Fledge management API
       - 6685:6685 # Fledge south API
@@ -22,22 +23,22 @@ services:
          sudo -u postgres createuser -d $(whoami) || echo 'User already exists' &&
          /usr/local/fledge/start.sh"
 
-  postgres:
-    image: postgres:14
-    container_name: fledge_postgres
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_USER: fledge
-      POSTGRES_PASSWORD: fledgepassword
-      POSTGRES_DB: fledge
-    volumes:
-      - pg_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U fledge"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+  # postgres:
+  #   image: postgres:14
+  #   container_name: fledge_postgres
+  #   ports:
+  #     - "5432:5432"
+  #   environment:
+  #     POSTGRES_USER: fledge
+  #     POSTGRES_PASSWORD: fledgepassword
+  #     POSTGRES_DB: fledge
+  #   volumes:
+  #     - pg_data:/var/lib/postgresql/data
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U fledge"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
 
   fledge-gui:
     container_name: og-fledge-gui
@@ -95,7 +96,7 @@ services:
     build:
       context: https://${GITHUB_TOKEN}@github.com/OrxaGridMicroservices/SEED-STEM-Emulator.git#main
     platform: linux/amd64
-    command: python /app/main.py --data_type random --interval 10 --phase_version Ph8
+    command: python /app/main.py --data_type random --phase_version Ph8
 
     environment:
       - MQTT_BROKER=${MQTT_BROKER}
@@ -105,10 +106,21 @@ services:
       - MQTT_TOPIC=${MQTT_TOPIC}
       - MQTT_DEVICE=${MQTT_DEVICE}
       - DEVICE_TYPE=${DEVICE_TYPE}
+      - MQTT_TOPICS=${MQTT_TOPICS}
+      - ADS_INTERVAL=${ADS_INTERVAL}
+      - PDS_INTERVAL=${PDS_INTERVAL}
+      - PQS_INTERVAL=${PQS_INTERVAL}
+      - DDS_INTERVAL=${DDS_INTERVAL}
       - TZ=${TZ}
     tty: true
     restart: always # Added restart policy
     stdin_open: true
+
+  ws_server:
+    build: ./ws
+    container_name: og-websocket_server
+    ports:
+      - "8765:8000"
 
 volumes:
   fledge:

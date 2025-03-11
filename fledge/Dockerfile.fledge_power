@@ -399,6 +399,10 @@ RUN chmod +x /tmp/fledge-install-dispatcher.sh && \
 #     /tmp/fledge-north-auditsnmp_build.sh && \
 #     echo '=============================================='
 
+COPY ./plugins/north/ws_north /usr/local/fledge/python/fledge/plugins/north/ws_north
+
+RUN pip3 install websockets
+
 WORKDIR /usr/local/fledge
 
 # COPY importModules.sh importModules.sh

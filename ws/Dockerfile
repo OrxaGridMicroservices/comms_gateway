@@ -5,7 +5,7 @@ FROM python:3.10
 WORKDIR /app
 
 # Copy server files
-COPY server.py .
+COPY ws/server.py .
 
 # Install dependencies
 RUN pip install fastapi uvicorn websockets

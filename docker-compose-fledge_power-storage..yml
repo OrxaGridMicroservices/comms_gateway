@@ -117,7 +117,9 @@ services:
     stdin_open: true
 
   ws_server:
-    build: ./ws
+    build:
+      context: .
+      dockerfile: ws/Dockerfile
     container_name: og-websocket_server
     ports:
       - "8765:8000"

@@ -52,7 +52,7 @@ conn_clients: Dict[Tuple[str, str], Set[WebSocket]] = {}
 async def websocket_endpoint(websocket: WebSocket, asset: str, topic: str):
     """Handles WebSocket connections for specific asset and topic."""
     await websocket.accept()
-    client_key = (asset, topic)
+    client_key = (str(asset), topic)
     
     if client_key not in conn_clients:
         conn_clients[client_key] = set()

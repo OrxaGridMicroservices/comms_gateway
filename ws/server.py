@@ -24,7 +24,7 @@ async def websocket_endpoint(websocket: WebSocket):
             # Receive data from Fledge
             data = await websocket.receive_text()
             payload = json.loads(data)
-            logging.info(f"Received payload from Fledge: {json.dumps(payload, indent=2)}")
+            #logging.info(f"Received payload from Fledge: {json.dumps(payload, indent=2)}")
             
             # Broadcast to all connected clients
             await broadcast(json.dumps(payload))
@@ -64,7 +64,7 @@ async def websocket_endpoint(websocket: WebSocket, asset: str, topic: str):
         while True:
             data = await websocket.receive_text()
             payload = json.loads(data)
-            logging.info(f"Received payload from Fledge: {json.dumps(payload, indent=2)}")
+            #logging.info(f"Received payload from Fledge: {json.dumps(payload, indent=2)}")
             
             # Broadcast to all connected clients
             await broadcast_message(json.dumps(payload))

@@ -1,12 +1,10 @@
-git clone https://github.com/fledge-iot/fledge-filter-python35.git
-cd fledge-filter-python35
-chmod +x mkversion
-mkdir build
-cd build
-cmake -DCMAKE_BUILD_TYPE=Release -DFLEDGE_INCLUDE=/usr/local/fledge/include/ -DFLEDGE_LIB=/usr/local/fledge/lib/ ..
-make
-if [ ! -d "${FLEDGE_ROOT}/plugins/filter/python35" ] 
-then
-    sudo mkdir -p ${FLEDGE_ROOT}/plugins/filter/python35
-fi
-sudo cp libpython35.so ${FLEDGE_ROOT}/plugins/filter/python35
+FLEDGENOTIFVERSION=2.6.0
+RELEASE=2.6.0
+OPERATINGSYSTEM=ubuntu2004
+ARCHITECTURE=x86_64
+FLEDGELINK="http://archives.fledge-iot.org/$RELEASE/$OPERATINGSYSTEM/$ARCHITECTURE"
+
+wget --no-check-certificate ${FLEDGELINK}/fledge-filter-python35_${FLEDGENOTIFVERSION}_${ARCHITECTURE}.deb
+dpkg --unpack ./fledge-filter-python35_${FLEDGENOTIFVERSION}_${ARCHITECTURE}.deb
+apt-get install -yf
+apt-get clean -y

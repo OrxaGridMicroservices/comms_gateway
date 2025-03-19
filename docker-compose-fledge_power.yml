@@ -47,7 +47,7 @@ services:
       fledge:
         condition: service_started
     environment:
-      - FLEDGE_BASE_URL=${FLEDGE_BASE_URL}
+      - COMMS_GW_BASE_URL=${COMMS_GW_BASE_URL}
       - TZ=${TZ}
     command: >
       bash -c "

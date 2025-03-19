@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException
 import requests
 import os
 from dotenv import load_dotenv
@@ -14,14 +14,14 @@ app = FastAPI(
     version="0.1.0"
 )
 
-FLEDGE_BASE_URL = os.getenv("FLEDGE_BASE_URL", "http://fledge:8081")
+COMMS_GW_BASE_URL = os.getenv("COMMS_GW_BASE_URL", "http://fledge:8081")
 
 class LoginPayload(BaseModel):
     username: str
     password: str
 
 def get_auth_token():
-    url = f"{FLEDGE_BASE_URL}/fledge/login"
+    url = f"{COMMS_GW_BASE_URL}/fledge/login"
     payload = {"username": "admin", "password": "fledge"}
     response = requests.post(url, json=payload)
     if response.status_code == 200:
@@ -31,7 +31,7 @@ def get_auth_token():
 
 @app.post("/comm_gw/login", tags=["Authentication Management"], summary="Return a token")
 async def login(payload: LoginPayload):
-    url = f"{FLEDGE_BASE_URL}/fledge/login"
+    url = f"{COMMS_GW_BASE_URL}/fledge/login"
     response = requests.post(url, json=payload.dict())
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
@@ -54,12 +54,11 @@ class SEEDSTEMDevicePayload(BaseModel):
 @app.post("/comm_gw/seed-stem-device", tags=["Device Management"], summary="Create a SEED-STEM device")
 async def create_seed_stem_device(payload: SEEDSTEMDevicePayload):
     """
-    Create a new service in Fledge.
-
-    The minimum required fields are 'name', 'type', and 'enabled'.  
-    For north or south services, the 'plugin' field is required and you can also pass an optional 'config' for plugin configuration.
+    Create a new service in Comms_gw.
+    The minimum required fields are 'name', 'type', and 'enabled'.
+    For north or south services, the 'plugin' field is required, and you can also pass an optional 'config'.
     """
-    url = f"{FLEDGE_BASE_URL}/fledge/service"
+    url = f"{COMMS_GW_BASE_URL}/fledge/service"
     headers = {"Authorization": get_auth_token()}
     response = requests.post(url, json=payload.dict(exclude_unset=True), headers=headers)
     if response.status_code != 200:
@@ -68,7 +67,7 @@ async def create_seed_stem_device(payload: SEEDSTEMDevicePayload):
 
 @app.get("/comm_gw/seed-stem-device", tags=["Device Management"], summary="List all SEED-STEM devices")
 async def list_seed_stem_devices():
-    url = f"{FLEDGE_BASE_URL}/fledge/service"
+    url = f"{COMMS_GW_BASE_URL}/fledge/service"
     headers = {"Authorization": get_auth_token()}
     response = requests.get(url, headers=headers)
     if response.status_code != 200:
@@ -77,13 +76,13 @@ async def list_seed_stem_devices():
 
 @app.put("/comm_gw/seed-stem-device/{device_name}", tags=["Device Management"], summary="Update a SEED-STEM device")
 async def update_seed_stem_device(device_name: str, payload: SEEDSTEMDevicePayload):
-    delete_url = f"{FLEDGE_BASE_URL}/fledge/service/{device_name}"
+    delete_url = f"{COMMS_GW_BASE_URL}/fledge/service/{device_name}"
     headers = {"Authorization": get_auth_token()}
     delete_response = requests.delete(delete_url, headers=headers)
     if delete_response.status_code != 200:
         raise HTTPException(status_code=delete_response.status_code, detail="Delete failed: " + delete_response.text)
     
-    create_url = f"{FLEDGE_BASE_URL}/fledge/service"
+    create_url = f"{COMMS_GW_BASE_URL}/fledge/service"
     create_response = requests.post(create_url, json=payload.dict(exclude_unset=True), headers=headers)
     if create_response.status_code != 200:
         raise HTTPException(status_code=create_response.status_code, detail="Create failed: " + create_response.text)
@@ -92,29 +91,28 @@ async def update_seed_stem_device(device_name: str, payload: SEEDSTEMDevicePaylo
 
 @app.delete("/comm_gw/seed-stem-device/{device_name}", tags=["Device Management"], summary="Delete a SEED-STEM device")
 async def delete_seed_stem_device(device_name: str):
-    url = f"{FLEDGE_BASE_URL}/fledge/service/{device_name}"
+    url = f"{COMMS_GW_BASE_URL}/fledge/service/{device_name}"
     headers = {"Authorization": get_auth_token()}
     response = requests.delete(url, headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return {"message": "SEED-STEM device deleted successfully"}
 
-
 class SchedulePayload(BaseModel):
     service_name: str = Field(..., example="MSEDCL-STMS1")
 
-@app.put("/comm_gw/seed_stem_device/disable", tags=["Device Management"], summary="Disable an seed_stem_device")
+@app.put("/comm_gw/seed_stem_device/disable", tags=["Device Management"], summary="Disable a SEED-STEM device")
 async def disable_seed_stem_device(payload: SchedulePayload):
-    url = f"{FLEDGE_BASE_URL}/fledge/schedule/disable"
+    url = f"{COMMS_GW_BASE_URL}/fledge/schedule/disable"
     headers = {"Authorization": get_auth_token()}
     response = requests.put(url, json=payload.dict(), headers=headers)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return response.json()
 
-@app.put("/comm_gw/seed_stem_device/enable", tags=["Device Management"], summary="Enable an seed_stem_device ")
+@app.put("/comm_gw/seed_stem_device/enable", tags=["Device Management"], summary="Enable a SEED-STEM device")
 async def enable_seed_stem_device(payload: SchedulePayload):
-    url = f"{FLEDGE_BASE_URL}/fledge/schedule/enable"
+    url = f"{COMMS_GW_BASE_URL}/fledge/schedule/enable"
     headers = {"Authorization": get_auth_token()}
     response = requests.put(url, json=payload.dict(), headers=headers)
     if response.status_code != 200:

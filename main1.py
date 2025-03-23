@@ -1,12 +1,10 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 import requests
 import os
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 from typing import Optional, Dict, Any
 import response_models
-from fastapi import Query
-
 
 load_dotenv()
 
@@ -40,17 +38,18 @@ async def login(payload: LoginPayload):
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return response.json()
 
-
-
 @app.get(
-    "/comm_gw/seed-stem-device",
+    "/api/seed-stem-device",
     tags=["Device Management"],
-    summary="List all SEED-STEM devices",
+    summary="List SEED-STEM devices with pagination",
     response_model=response_models.SEEDSTEMDeviceListResponse
 )
-async def list_seed_stem_devices():
+async def list_seed_stem_devices(
+    page: int = Query(1, ge=1, description="Page number (starts from 1)"),
+    limit: int = Query(10, ge=1, le=100, description="Number of items per page (max 100)")
+):
     """
-    Retrieve a list of all SEED-STEM devices registered in the Comms Gateway.
+    Retrieve a paginated list of SEED-STEM devices registered in the Comms Gateway.
     """
     url = f"{COMMS_GW_BASE_URL}/fledge/service"
     headers = {"Authorization": get_auth_token()}
@@ -63,10 +62,17 @@ async def list_seed_stem_devices():
 
     # Filter only Southbound and Northbound services
     seed_stem_services = [
-        service for service in services if service["type"] in ["Southbound", "Northbound"]
+        response_models.SEEDSTEMDeviceInfo(**service)
+        for service in services
+        if service.get("type", "").lower() in ["southbound", "northbound"]
     ]
 
-    return {"services": seed_stem_services}
+    # Apply pagination
+    start_index = (page - 1) * limit
+    end_index = start_index + limit
+    paginated_services = seed_stem_services[start_index:end_index]
+
+    return {"services": paginated_services}
 
 @app.post(
     "/comm_gw/seed-stem-device",

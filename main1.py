@@ -4,6 +4,9 @@ import os
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 from typing import Optional, Dict, Any
+import response_models
+from fastapi import Query
+
 
 load_dotenv()
 
@@ -14,7 +17,7 @@ app = FastAPI(
     version="0.1.0"
 )
 
-COMMS_GW_BASE_URL = os.getenv("COMMS_GW_BASE_URL", "http://fledge:8081")
+COMMS_GW_BASE_URL = os.getenv("COMMS_GW_BASE_URL", "http://comms_gw:8081")
 
 class LoginPayload(BaseModel):
     username: str
@@ -37,38 +40,64 @@ async def login(payload: LoginPayload):
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return response.json()
 
-class SEEDSTEMDevicePayload(BaseModel):
-    device_name: str = Field(..., example="MSEDCL-STMS1")
-    enabled: bool = Field(..., example=True)
-    comms_protocol: Optional[str] = Field(..., example="mqtt")
-    mqtt_broker_host: Optional[str] = Field(None, example="mosquitto")
-    mqtt_topic: Optional[str] = Field(None, example="STMS2/pdstop")
-    asset_point_id: Optional[int] = Field(None, example="1")
 
-@app.post("/comm_gw/seed-stem-device", tags=["Device Management"], summary="Create a SEED-STEM device")
-async def create_seed_stem_device(payload: SEEDSTEMDevicePayload):
+
+@app.get(
+    "/comm_gw/seed-stem-device",
+    tags=["Device Management"],
+    summary="List all SEED-STEM devices",
+    response_model=response_models.SEEDSTEMDeviceListResponse
+)
+async def list_seed_stem_devices():
+    """
+    Retrieve a list of all SEED-STEM devices registered in the Comms Gateway.
+    """
+    url = f"{COMMS_GW_BASE_URL}/fledge/service"
+    headers = {"Authorization": get_auth_token()}
+    response = requests.get(url, headers=headers)
+
+    if response.status_code != 200:
+        raise HTTPException(status_code=response.status_code, detail=response.text)
+
+    services = response.json().get("services", [])
+
+    # Filter only Southbound and Northbound services
+    seed_stem_services = [
+        service for service in services if service["type"] in ["Southbound", "Northbound"]
+    ]
+
+    return {"services": seed_stem_services}
+
+@app.post(
+    "/comm_gw/seed-stem-device",
+    tags=["Device Management"],
+    summary="Create a SEED-STEM device",
+    response_model=response_models.SEEDSTEMDeviceResponse
+)
+async def create_seed_stem_device(payload: response_models.SEEDSTEMDevicePayload):
     """
     Create a new service in Comms_gw.
-    The minimum required fields are 'name', 'type', and 'enabled'.
-    For north or south services, the 'comms_protocol' field is required, and you can also pass an optional 'mqtt_broker_host','mqtt_topic','asset_point_id'.
+    The minimum required fields are 'device_name' and 'enabled'.
+    For north or south services, the 'comms_protocol' field is required, and you can also pass an optional 'mqtt_broker_host', 'mqtt_topic', and 'asset_point_id'.
     """
     url = f"{COMMS_GW_BASE_URL}/fledge/service"
     headers = {"Authorization": get_auth_token()}
     payload_dict = payload.dict(exclude_unset=True)
+
     # Rename 'device_name' to 'name'
     payload_dict["name"] = payload_dict.pop("device_name")
 
     # Set 'type' to 'south' (since it's no longer passed in the request)
     payload_dict["type"] = "south"
 
-    # Check comms_protocol and set plugin accordingly
+    # Validate comms_protocol and set plugin
     if payload.comms_protocol == "mqtt":
         payload_dict["plugin"] = "mqtt-readings-binary"
     else:
-        raise HTTPException(status_code=400, detail="Invalid comms_protocol. Only 'mqtt' is supported.")
-    
+        raise HTTPException(status_code=400, detail={"message": "Invalid comms_protocol. Only 'mqtt' is supported."})
+
     payload_dict["config"] = {}
-    
+
     if payload.mqtt_broker_host:
         payload_dict["config"]["brokerHost"] = {"value": payload.mqtt_broker_host}
     if payload.mqtt_topic:
@@ -85,17 +114,14 @@ async def create_seed_stem_device(payload: SEEDSTEMDevicePayload):
 
     return response.json()
 
-@app.get("/comm_gw/seed-stem-device", tags=["Device Management"], summary="List all SEED-STEM devices")
-async def list_seed_stem_devices():
-    url = f"{COMMS_GW_BASE_URL}/fledge/service"
-    headers = {"Authorization": get_auth_token()}
-    response = requests.get(url, headers=headers)
-    if response.status_code != 200:
-        raise HTTPException(status_code=response.status_code, detail=response.text)
-    return response.json()
 
-@app.put("/comm_gw/seed-stem-device/{device_name}", tags=["Device Management"], summary="Update a SEED-STEM device")
-async def update_seed_stem_device(device_name: str, payload: SEEDSTEMDevicePayload):
+@app.put(
+    "/comm_gw/seed-stem-device/{device_name}",
+    tags=["Device Management"],
+    summary="Update a SEED-STEM device",
+    response_model=response_models.SEEDSTEMDeviceResponse
+)
+async def update_seed_stem_device(device_name: str, payload: response_models.SEEDSTEMDevicePayload):
     """
     Update an existing SEED-STEM device by deleting and recreating it with new values.
     """
@@ -135,29 +161,40 @@ async def update_seed_stem_device(device_name: str, payload: SEEDSTEMDevicePaylo
 
     return create_response.json()
 
-
-@app.delete("/comm_gw/seed-stem-device/{device_name}", tags=["Device Management"], summary="Delete a SEED-STEM device")
+@app.delete(
+    "/comm_gw/seed-stem-device/{device_name}",
+    tags=["Device Management"],
+    summary="Delete a SEED-STEM device",
+    response_model=response_models.DeleteSEEDSTEMDeviceResponse
+)
 async def delete_seed_stem_device(device_name: str):
     url = f"{COMMS_GW_BASE_URL}/fledge/service/{device_name}"
     headers = {"Authorization": get_auth_token()}
+    
     response = requests.delete(url, headers=headers)
+
+    if response.status_code == 404:
+        raise HTTPException(status_code=404, detail="Device not found")
+
     if response.status_code != 200:
-        raise HTTPException(status_code=response.status_code, detail=response.text)
-    return {"message": "SEED-STEM device deleted successfully"}
+        raise HTTPException(status_code=response.status_code, detail="Delete failed: " + response.text)
+    return {"result": "SEED-STEM device deleted successfully", "statusCode": 200}
 
-class SchedulePayload(BaseModel):
-    device_name: str = Field(..., example="MSEDCL-STMS1")
 
-@app.put("/comm_gw/seed_stem_device/disable", tags=["Device Management"], summary="Disable a SEED-STEM device")
-async def disable_seed_stem_device(payload: SchedulePayload):
+@app.put(
+    "/comm_gw/seed_stem_device/disable",
+    tags=["Device Management"],
+    summary="Disable a SEED-STEM device",
+    response_model=response_models.ScheduleResponseModel
+    
+)
+async def disable_seed_stem_device(payload: response_models.SchedulePayload):
     url = f"{COMMS_GW_BASE_URL}/fledge/schedule/disable"
     headers = {"Authorization": get_auth_token()}
     
-    # Modify the payload correctly
     payload_dict = payload.dict(exclude_unset=True)
     payload_dict["schedule_name"] = payload_dict.pop("device_name")
 
-    # Send the updated payload
     response = requests.put(url, json=payload_dict, headers=headers)
     
     if response.status_code != 200:
@@ -165,16 +202,19 @@ async def disable_seed_stem_device(payload: SchedulePayload):
     
     return response.json()
 
-@app.put("/comm_gw/seed_stem_device/enable", tags=["Device Management"], summary="Enable a SEED-STEM device")
-async def enable_seed_stem_device(payload: SchedulePayload):
+@app.put(
+    "/comm_gw/seed_stem_device/enable",
+    tags=["Device Management"],
+    summary="Enable a SEED-STEM device",
+    response_model=response_models.ScheduleResponseModel
+)
+async def enable_seed_stem_device(payload: response_models.SchedulePayload):
     url = f"{COMMS_GW_BASE_URL}/fledge/schedule/enable"
     headers = {"Authorization": get_auth_token()}
     
-    # Modify the payload correctly
     payload_dict = payload.dict(exclude_unset=True)
     payload_dict["schedule_name"] = payload_dict.pop("device_name")
 
-    # Send the updated payload
     response = requests.put(url, json=payload_dict, headers=headers)
     
     if response.status_code != 200:

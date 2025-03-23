@@ -1,11 +1,11 @@
 # From https://github.com/RobRaesemann/FLEDGE-IOT-Docker
 services:
-  fledge:
+  comms_gw:
     build:
       context: .
       dockerfile: fledge/Dockerfile.fledge_power
     platform: linux/amd64
-    container_name: og-fledge
+    container_name: og-comms_gw
     environment:
       - FLEDGE_ROOT=/usr/local/fledge
       - TZ=${TZ}
@@ -18,8 +18,8 @@ services:
       - 6683:6683
       - 8080:8080 # Optional: Additional API if configured
 
-  fledge-gui:
-    container_name: og-fledge-gui
+  comms_gw-gui:
+    container_name: og-comms_gw-gui
     image: robraesemann/fledge-gui:2.6.0
     environment:
       - TZ=${TZ}
@@ -36,15 +36,15 @@ services:
     volumes:
       - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
 
-  fledge-api:
-    container_name: og-fledge-api
+  comms_gw-api:
+    container_name: og-comms_gw-api
     build:
       context: .
       dockerfile: Dockerfile.api
     ports:
       - "8000:8000" # FastAPI Swagger
     depends_on:
-      fledge:
+      comms_gw:
         condition: service_started
     environment:
       - COMMS_GW_BASE_URL=${COMMS_GW_BASE_URL}
@@ -62,42 +62,42 @@ services:
          curl -X PUT 'http://fledge:8081/fledge/restart'&&
          tail -f /dev/null"
 
-  mqtt-seed-stem-json-emulator:
-    build: ./mqtt-publisher
-    container_name: og-mqtt-seed-stem-json-emulator
-    environment:
-      PDS_INTERVAL: 60 # Default interval for PDS in seconds
-      ADS_INTERVAL: 10 # Default interval for ADS in seconds
-      MQTT_BROKER: "mosquitto" # Replace with your MQTT broker hostname or IP
-      MQTT_PORT: 1883 # MQTT broker port
-      MQTT_DEVICE: ${MQTT_DEVICE} #list of MQTT devices to simulate data
-      TZ: ${TZ}
-    volumes:
-      - ./mqtt-publisher/config_pds.json:/app/config_pds.json
-      - ./mqtt-publisher/config_ads.json:/app/config_ads.json
-      - ./mqtt-publisher/config_dds.json:/app/config_dds.json
-    depends_on:
-      - mosquitto
+  # mqtt-seed-stem-json-emulator:
+  #   build: ./mqtt-publisher
+  #   container_name: og-mqtt-seed-stem-json-emulator
+  #   environment:
+  #     PDS_INTERVAL: 60 # Default interval for PDS in seconds
+  #     ADS_INTERVAL: 10 # Default interval for ADS in seconds
+  #     MQTT_BROKER: "mosquitto" # Replace with your MQTT broker hostname or IP
+  #     MQTT_PORT: 1883 # MQTT broker port
+  #     MQTT_DEVICE: ${MQTT_DEVICE} #list of MQTT devices to simulate data
+  #     TZ: ${TZ}
+  #   volumes:
+  #     - ./mqtt-publisher/config_pds.json:/app/config_pds.json
+  #     - ./mqtt-publisher/config_ads.json:/app/config_ads.json
+  #     - ./mqtt-publisher/config_dds.json:/app/config_dds.json
+  #   depends_on:
+  #     - mosquitto
 
-  mqtt-seed-stem-binary-emulator:
-    container_name: og-mqtt-seed-stem-binary-emulator
-    build:
-      context: https://${GITHUB_TOKEN}@github.com/OrxaGridMicroservices/SEED-STEM-Emulator.git#main
-    platform: linux/amd64
-    command: python /app/main.py --data_type random --interval 10 --phase_version Ph7
+  # mqtt-seed-stem-binary-emulator:
+  #   container_name: og-mqtt-seed-stem-binary-emulator
+  #   build:
+  #     context: https://${GITHUB_TOKEN}@github.com/OrxaGridMicroservices/SEED-STEM-Emulator.git#main
+  #   platform: linux/amd64
+  #   command: python /app/main.py --data_type random --interval 10 --phase_version Ph7
 
-    environment:
-      - MQTT_BROKER=${MQTT_BROKER}
-      - MQTT_PORT=${MQTT_PORT}
-      - MQTT_USERNAME=${MQTT_USERNAME}
-      - MQTT_PASSWORD=${MQTT_PASSWORD}
-      - MQTT_TOPIC=${MQTT_TOPIC}
-      - MQTT_DEVICE=${MQTT_DEVICE}
-      - DEVICE_TYPE=${DEVICE_TYPE}
-      - TZ=${TZ}
-    tty: true
-    restart: always # Added restart policy
-    stdin_open: true
+  #   environment:
+  #     - MQTT_BROKER=${MQTT_BROKER}
+  #     - MQTT_PORT=${MQTT_PORT}
+  #     - MQTT_USERNAME=${MQTT_USERNAME}
+  #     - MQTT_PASSWORD=${MQTT_PASSWORD}
+  #     - MQTT_TOPIC=${MQTT_TOPIC}
+  #     - MQTT_DEVICE=${MQTT_DEVICE}
+  #     - DEVICE_TYPE=${DEVICE_TYPE}
+  #     - TZ=${TZ}
+  #   tty: true
+  #   restart: always # Added restart policy
+  #   stdin_open: true
 
 volumes:
   fledge:

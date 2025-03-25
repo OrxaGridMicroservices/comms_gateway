@@ -23,17 +23,17 @@ RUN apt-get update && apt-get dist-upgrade -y && apt-get install --no-install-re
     rsyslog \
     sed \
     wget \
-    libssl-dev \
-    libgnutls28-dev \
-    libgtest-dev \
+	libssl-dev  \
+       libgnutls28-dev \
+       libgtest-dev \
     snmp \
     pkg-config \
     postgresql postgresql-client \
-    cmake g++ make build-essential autoconf automake uuid-dev &&
+    cmake g++ make build-essential autoconf automake uuid-dev && \
     echo "=============================================="
 
-RUN mkdir ./fledge &&
-    wget -O ./fledge/fledge-${FLEDGEVERSION}-${ARCHITECTURE}.deb --no-check-certificate ${FLEDGELINK}/fledge_${FLEDGEVERSION}_${ARCHITECTURE}.deb &&
+RUN mkdir ./fledge && \
+    wget -O ./fledge/fledge-${FLEDGEVERSION}-${ARCHITECTURE}.deb --no-check-certificate ${FLEDGELINK}/fledge_${FLEDGEVERSION}_${ARCHITECTURE}.deb && \
     #
     # The postinstall script of the .deb package enables and starts the fledge service. Since services are not supported in docker
     # containers, we must modify the postinstall script to remove these lines so that the package will install without errors.
@@ -42,34 +42,34 @@ RUN mkdir ./fledge &&
     # will install normally.
     #
     # Unpack .deb package
-    dpkg --unpack ./fledge/fledge-${FLEDGEVERSION}-${ARCHITECTURE}.deb &&
+    dpkg --unpack ./fledge/fledge-${FLEDGEVERSION}-${ARCHITECTURE}.deb && \
     # Remove lines that enable and start the service. They call enable_FLEDGE_service() and start_FLEDGE_service()
     # Save to /fledge.postinst. We'll run that after we install the dependencies.
-    sed '/^.*_fledge_service$/d' /var/lib/dpkg/info/fledge.postinst >/fledge.postinst &&
+    sed '/^.*_fledge_service$/d' /var/lib/dpkg/info/fledge.postinst >/fledge.postinst && \
     # Rename the original file so that it doesn't get run in next step.
-    mv /var/lib/dpkg/info/fledge.postinst /var/lib/dpkg/info/fledge.postinst.save &&
+    mv /var/lib/dpkg/info/fledge.postinst /var/lib/dpkg/info/fledge.postinst.save && \
     # Configure the package and install dependencies.
-    apt-get install -yf &&
+    apt-get install -yf && \
     # Manually run the post install script - creates certificates, installs python dependencies etc.
-    mkdir -p /usr/local/fledge/data/extras/fogbench &&
-    chmod +x /fledge.postinst &&
-    /fledge.postinst &&
+    mkdir -p /usr/local/fledge/data/extras/fogbench && \
+    chmod +x /fledge.postinst && \
+    /fledge.postinst && \
     # Cleanup fledge installation packages
-    rm -f /*.tgz &&
+    rm -f /*.tgz && \
     # You may choose to leave the installation packages in the directory in case you need to troubleshoot
-    rm -rf -r /fledge &&
+    rm -rf -r /fledge && \
     # General cleanup after using apt-get
-    apt-get autoremove -y &&
-    apt-get clean -y &&
-    rm -rf /var/lib/apt-get/lists/ &&
+    apt-get autoremove -y && \
+    apt-get clean -y && \
+    rm -rf /var/lib/apt-get/lists/ && \
     echo '=============================================='
-
+	
 COPY ./plugins/south/mqtt-readings-binary /usr/local/fledge/python/fledge/plugins/south/mqtt-readings-binary
 
 COPY fledge/fledge-install-include.sh /tmp/
 
-RUN chmod +x /tmp/fledge-install-include.sh &&
-    /tmp/fledge-install-include.sh &&
+RUN chmod +x /tmp/fledge-install-include.sh && \
+    /tmp/fledge-install-include.sh && \
     echo '=============================================='
 
 # COPY fledge-install-dispatcher.sh /tmp/
@@ -86,15 +86,17 @@ RUN chmod +x /tmp/fledge-install-include.sh &&
 
 COPY fledge/services/fledge-install-notification.sh /tmp/
 
-RUN chmod +x /tmp/fledge-install-notification.sh &&
-    /tmp/fledge-install-notification.sh &&
+RUN chmod +x /tmp/fledge-install-notification.sh && \
+    /tmp/fledge-install-notification.sh && \
     echo '=============================================='
 
 COPY fledge/services/fledge-install-dispatcher.sh /tmp/
 
-RUN chmod +x /tmp/fledge-install-dispatcher.sh &&
-    /tmp/fledge-install-dispatcher.sh &&
+RUN chmod +x /tmp/fledge-install-dispatcher.sh && \
+    /tmp/fledge-install-dispatcher.sh && \
     echo '=============================================='
+    
+
 
 # COPY fledge-install-rule-watchdog.sh /tmp/
 
@@ -108,58 +110,58 @@ RUN chmod +x /tmp/fledge-install-dispatcher.sh &&
 #     /tmp/fledge-install-notify-customasset.sh && \
 #     echo '=============================================='
 
-COPY fledge/plugins/south/fledge-south-iec104_build.sh /tmp/
+  COPY fledge/plugins/south/fledge-south-iec104_build.sh /tmp/
 
-RUN chmod +x /tmp/fledge-south-iec104_build.sh &&
-    /tmp/fledge-south-iec104_build.sh &&
+  RUN chmod +x /tmp/fledge-south-iec104_build.sh && \
+      /tmp/fledge-south-iec104_build.sh && \
+      echo '=============================================='
+	  
+  COPY fledge/plugins/south/fledge-south-http_build.sh /tmp/
+
+  RUN chmod +x /tmp/fledge-south-http_build.sh && \
+      /tmp/fledge-south-http_build.sh && \
+      echo '=============================================='
+	  
+  COPY fledge/plugins/south/fledge-south-mqtt_build.sh /tmp/
+
+  RUN chmod +x /tmp/fledge-south-mqtt_build.sh && \
+      /tmp/fledge-south-mqtt_build.sh && \
+      echo '=============================================='
+
+  COPY fledge/plugins/south/fledge-south-modbus_build.sh /tmp/
+
+  RUN chmod +x /tmp/fledge-south-modbus_build.sh && \
+    /tmp/fledge-south-modbus_build.sh && \
     echo '=============================================='
 
-COPY fledge/plugins/south/fledge-south-http_build.sh /tmp/
+  COPY fledge/plugins/south/fledge-south-modbustcp_build.sh /tmp/
 
-RUN chmod +x /tmp/fledge-south-http_build.sh &&
-    /tmp/fledge-south-http_build.sh &&
+  RUN chmod +x /tmp/fledge-south-modbustcp_build.sh && \
+    /tmp/fledge-south-modbustcp_build.sh && \
     echo '=============================================='
 
-COPY fledge/plugins/south/fledge-south-mqtt_build.sh /tmp/
+  COPY fledge/plugins/south/fledge-south-opcua_build.sh /tmp/
 
-RUN chmod +x /tmp/fledge-south-mqtt_build.sh &&
-    /tmp/fledge-south-mqtt_build.sh &&
-    echo '=============================================='
+  RUN chmod +x /tmp/fledge-south-opcua_build.sh && \
+      /tmp/fledge-south-opcua_build.sh && \
+      echo '=============================================='
 
-COPY fledge/plugins/south/fledge-south-modbus_build.sh /tmp/
+ COPY fledge/plugins/south/fledge-south-pt100_build.sh /tmp/
 
-RUN chmod +x /tmp/fledge-south-modbus_build.sh &&
-    /tmp/fledge-south-modbus_build.sh &&
-    echo '=============================================='
-
-COPY fledge/plugins/south/fledge-south-modbustcp_build.sh /tmp/
-
-RUN chmod +x /tmp/fledge-south-modbustcp_build.sh &&
-    /tmp/fledge-south-modbustcp_build.sh &&
-    echo '=============================================='
-
-COPY fledge/plugins/south/fledge-south-opcua_build.sh /tmp/
-
-RUN chmod +x /tmp/fledge-south-opcua_build.sh &&
-    /tmp/fledge-south-opcua_build.sh &&
-    echo '=============================================='
-
-COPY fledge/plugins/south/fledge-south-pt100_build.sh /tmp/
-
-RUN chmod +x /tmp/fledge-south-pt100_build.sh &&
+ RUN chmod +x /tmp/fledge-south-pt100_build.sh && \
     /tmp/fledge-south-pt100_build.sh && \ 
-echo '=============================================='
-
-COPY fledge/plugins/south/fledge-south-sinusoid_build.sh /tmp/
-
-RUN chmod +x /tmp/fledge-south-sinusoid_build.sh &&
-    /tmp/fledge-south-sinusoid_build.sh &&
     echo '=============================================='
 
-COPY fledge/plugins/south/fledge-south-systeminfo_build.sh /tmp/
+ COPY fledge/plugins/south/fledge-south-sinusoid_build.sh /tmp/
 
-RUN chmod +x /tmp/fledge-south-systeminfo_build.sh &&
-    /tmp/fledge-south-systeminfo_build.sh &&
+ RUN chmod +x /tmp/fledge-south-sinusoid_build.sh && \
+    /tmp/fledge-south-sinusoid_build.sh && \
+    echo '=============================================='
+
+ COPY fledge/plugins/south/fledge-south-systeminfo_build.sh /tmp/
+
+ RUN chmod +x /tmp/fledge-south-systeminfo_build.sh && \
+    /tmp/fledge-south-systeminfo_build.sh && \
     echo '=============================================='
 
 #  COPY fledge/plugins/south/fledge-south-wind-turbine_build.sh /tmp/
@@ -168,228 +170,229 @@ RUN chmod +x /tmp/fledge-south-systeminfo_build.sh &&
 #        /tmp/fledge-south-wind-turbine_build.sh && \
 #        echo '=============================================='
 
-COPY fledge/plugins/south/fledge-south-csv_build.sh /tmp/
+ COPY fledge/plugins/south/fledge-south-csv_build.sh /tmp/
 
-RUN chmod +x /tmp/fledge-south-csv_build.sh &&
-    /tmp/fledge-south-csv_build.sh &&
-    echo '=============================================='
+ RUN chmod +x /tmp/fledge-south-csv_build.sh  && \
+        /tmp/fledge-south-csv_build.sh && \
+        echo '=============================================='
 
-COPY fledge/plugins/south/fledge-south-CSV-Async_build.sh /tmp/
+ COPY fledge/plugins/south/fledge-south-CSV-Async_build.sh /tmp/
 
-RUN chmod +x /tmp/fledge-south-CSV-Async_build.sh &&
-    /tmp/fledge-south-CSV-Async_build.sh &&
-    echo '=============================================='
+ RUN chmod +x /tmp/fledge-south-CSV-Async_build.sh  && \
+        /tmp/fledge-south-CSV-Async_build.sh && \
+        echo '=============================================='
 
-COPY fledge/plugins/south/fledge-south-csvplayback_build.sh /tmp/
+ COPY fledge/plugins/south/fledge-south-csvplayback_build.sh /tmp/
 
-RUN chmod +x /tmp/fledge-south-csvplayback_build.sh &&
-    /tmp/fledge-south-csvplayback_build.sh &&
-    echo '=============================================='
+ RUN chmod +x /tmp/fledge-south-csvplayback_build.sh  && \
+        /tmp/fledge-south-csvplayback_build.sh && \
+        echo '=============================================='
 
-COPY fledge/plugins/south/fledge-south-iec61850.sh /tmp/
+ COPY fledge/plugins/south/fledge-south-iec61850.sh /tmp/
 
-RUN chmod +x /tmp/fledge-south-iec61850.sh &&
-    /tmp/fledge-south-iec61850.sh &&
-    echo '=============================================='
+ RUN chmod +x /tmp/fledge-south-iec61850.sh  && \
+       /tmp/fledge-south-iec61850.sh  && \
+       echo '=============================================='
+	  
+  COPY fledge/plugins/north/fledge-north-iec104_build.sh /tmp/
 
-COPY fledge/plugins/north/fledge-north-iec104_build.sh /tmp/
+  RUN chmod +x /tmp/fledge-north-iec104_build.sh && \
+     /tmp/fledge-north-iec104_build.sh && \
+      echo '=============================================='
 
-RUN chmod +x /tmp/fledge-north-iec104_build.sh &&
-    /tmp/fledge-north-iec104_build.sh &&
-    echo '=============================================='
+  COPY fledge/plugins/north/fledge-north-http_build.sh /tmp/
 
-COPY fledge/plugins/north/fledge-north-http_build.sh /tmp/
+  RUN chmod +x /tmp/fledge-north-http_build.sh && \
+        /tmp/fledge-north-http_build.sh && \
+        echo '=============================================='
+		
+  COPY fledge/plugins/north/fledge-north-http-c_build.sh /tmp/
 
-RUN chmod +x /tmp/fledge-north-http_build.sh &&
-    /tmp/fledge-north-http_build.sh &&
-    echo '=============================================='
+  RUN chmod +x /tmp/fledge-north-http-c_build.sh && \
+        /tmp/fledge-north-http-c_build.sh && \
+        echo '=============================================='
 
-COPY fledge/plugins/north/fledge-north-http-c_build.sh /tmp/
+  COPY fledge/plugins/north/fledge-north-opcua_build.sh /tmp/
 
-RUN chmod +x /tmp/fledge-north-http-c_build.sh &&
-    /tmp/fledge-north-http-c_build.sh &&
-    echo '=============================================='
+  RUN chmod +x /tmp/fledge-north-opcua_build.sh && \
+        /tmp/fledge-north-opcua_build.sh && \ 
+        echo '=============================================='
 
-COPY fledge/plugins/north/fledge-north-opcua_build.sh /tmp/
+  COPY fledge/plugins/north/fledge-north-opcuaclient_build.sh /tmp/
 
-RUN chmod +x /tmp/fledge-north-opcua_build.sh &&
-    /tmp/fledge-north-opcua_build.sh && \ 
-echo '=============================================='
+  RUN chmod +x /tmp/fledge-north-opcuaclient_build.sh && \
+        /tmp/fledge-north-opcuaclient_build.sh && \
+        echo '=============================================='
 
-COPY fledge/plugins/north/fledge-north-opcuaclient_build.sh /tmp/
+ COPY fledge/plugins/north/fledge-north-thingspeak_build.sh /tmp/
 
-RUN chmod +x /tmp/fledge-north-opcuaclient_build.sh &&
-    /tmp/fledge-north-opcuaclient_build.sh &&
-    echo '=============================================='
+ RUN chmod +x /tmp/fledge-north-thingspeak_build.sh && \
+        /tmp/fledge-north-thingspeak_build.sh && \
+        echo '=============================================='
+	
+  COPY fledge/plugins/filter/fledge-filter-python35_build.sh /tmp/
 
-COPY fledge/plugins/north/fledge-north-thingspeak_build.sh /tmp/
+  RUN chmod +x /tmp/fledge-filter-python35_build.sh && \
+        /tmp/fledge-filter-python35_build.sh && \
+        echo '=============================================='
 
-RUN chmod +x /tmp/fledge-north-thingspeak_build.sh &&
-    /tmp/fledge-north-thingspeak_build.sh &&
-    echo '=============================================='
+  COPY fledge/plugins/filter/fledge-filter-delta_build.sh /tmp/
 
-COPY fledge/plugins/filter/fledge-filter-python35_build.sh /tmp/
+  RUN chmod +x /tmp/fledge-filter-delta_build.sh && \
+        /tmp/fledge-filter-delta_build.sh && \
+        echo '=============================================='
 
-RUN chmod +x /tmp/fledge-filter-python35_build.sh &&
-    /tmp/fledge-filter-python35_build.sh &&
-    echo '=============================================='
+  COPY fledge/plugins/filter/fledge-filter-asset_build.sh /tmp/
 
-COPY fledge/plugins/filter/fledge-filter-delta_build.sh /tmp/
+  RUN chmod +x /tmp/fledge-filter-asset_build.sh && \
+        /tmp/fledge-filter-asset_build.sh && \
+        echo '=============================================='
 
-RUN chmod +x /tmp/fledge-filter-delta_build.sh &&
-    /tmp/fledge-filter-delta_build.sh &&
-    echo '=============================================='
+  COPY fledge/plugins/filter/fledge-filter-change_build.sh /tmp/
 
-COPY fledge/plugins/filter/fledge-filter-asset_build.sh /tmp/
+  RUN chmod +x /tmp/fledge-filter-change_build.sh && \
+        /tmp/fledge-filter-change_build.sh && \
+        echo '=============================================='
 
-RUN chmod +x /tmp/fledge-filter-asset_build.sh &&
-    /tmp/fledge-filter-asset_build.sh &&
-    echo '=============================================='
+ COPY fledge/plugins/filter/fledge-filter-expression_build.sh /tmp/
 
-COPY fledge/plugins/filter/fledge-filter-change_build.sh /tmp/
+ RUN chmod +x /tmp/fledge-filter-expression_build.sh && \
+        /tmp/fledge-filter-expression_build.sh && \
+        echo '=============================================='
 
-RUN chmod +x /tmp/fledge-filter-change_build.sh &&
-    /tmp/fledge-filter-change_build.sh &&
-    echo '=============================================='
+ COPY fledge/plugins/filter/fledge-filter-fft_build.sh /tmp/
 
-COPY fledge/plugins/filter/fledge-filter-expression_build.sh /tmp/
+ RUN chmod +x /tmp/fledge-filter-fft_build.sh && \
+        /tmp/fledge-filter-fft_build.sh && \
+        echo '=============================================='
 
-RUN chmod +x /tmp/fledge-filter-expression_build.sh &&
-    /tmp/fledge-filter-expression_build.sh &&
-    echo '=============================================='
+ COPY fledge/plugins/filter/fledge-filter-log_build.sh /tmp/
 
-COPY fledge/plugins/filter/fledge-filter-fft_build.sh /tmp/
+ RUN chmod +x /tmp/fledge-filter-log_build.sh && \
+        /tmp/fledge-filter-log_build.sh && \
+        echo '=============================================='
 
-RUN chmod +x /tmp/fledge-filter-fft_build.sh &&
-    /tmp/fledge-filter-fft_build.sh &&
-    echo '=============================================='
+ COPY fledge/plugins/filter/fledge-filter-metadata_build.sh /tmp/
 
-COPY fledge/plugins/filter/fledge-filter-log_build.sh /tmp/
+ RUN chmod +x /tmp/fledge-filter-metadata_build.sh && \
+        /tmp/fledge-filter-metadata_build.sh && \
+        echo '=============================================='
 
-RUN chmod +x /tmp/fledge-filter-log_build.sh &&
-    /tmp/fledge-filter-log_build.sh &&
-    echo '=============================================='
+ COPY fledge/plugins/filter/fledge-filter-rate_build.sh /tmp/
 
-COPY fledge/plugins/filter/fledge-filter-metadata_build.sh /tmp/
+ RUN chmod +x /tmp/fledge-filter-rate_build.sh && \
+        /tmp/fledge-filter-rate_build.sh && \
+        echo '=============================================='
 
-RUN chmod +x /tmp/fledge-filter-metadata_build.sh &&
-    /tmp/fledge-filter-metadata_build.sh &&
-    echo '=============================================='
+ COPY fledge/plugins/filter/fledge-filter-rename_build.sh /tmp/
 
-COPY fledge/plugins/filter/fledge-filter-rate_build.sh /tmp/
+ RUN chmod +x /tmp/fledge-filter-rename_build.sh && \
+        /tmp/fledge-filter-rename_build.sh && \
+        echo '=============================================='
 
-RUN chmod +x /tmp/fledge-filter-rate_build.sh &&
-    /tmp/fledge-filter-rate_build.sh &&
-    echo '=============================================='
+ COPY fledge/plugins/filter/fledge-filter-replace_build.sh /tmp/
 
-COPY fledge/plugins/filter/fledge-filter-rename_build.sh /tmp/
+ RUN chmod +x /tmp/fledge-filter-replace_build.sh && \
+        /tmp/fledge-filter-replace_build.sh && \
+        echo '=============================================='
 
-RUN chmod +x /tmp/fledge-filter-rename_build.sh &&
-    /tmp/fledge-filter-rename_build.sh &&
-    echo '=============================================='
+ COPY fledge/plugins/filter/fledge-filter-scale_build.sh /tmp/
 
-COPY fledge/plugins/filter/fledge-filter-replace_build.sh /tmp/
+ RUN chmod +x /tmp/fledge-filter-scale_build.sh && \
+        /tmp/fledge-filter-scale_build.sh && \
+        echo '=============================================='
 
-RUN chmod +x /tmp/fledge-filter-replace_build.sh &&
-    /tmp/fledge-filter-replace_build.sh &&
-    echo '=============================================='
+ COPY fledge/plugins/filter/fledge-filter-scale-set_build.sh /tmp/
 
-COPY fledge/plugins/filter/fledge-filter-scale_build.sh /tmp/
+ RUN chmod +x /tmp/fledge-filter-scale-set_build.sh && \
+        /tmp/fledge-filter-scale-set_build.sh && \
+        echo '=============================================='
 
-RUN chmod +x /tmp/fledge-filter-scale_build.sh &&
-    /tmp/fledge-filter-scale_build.sh &&
-    echo '=============================================='
+ COPY fledge/plugins/filter/fledge-filter-threshold_build.sh /tmp/
 
-COPY fledge/plugins/filter/fledge-filter-scale-set_build.sh /tmp/
+ RUN chmod +x /tmp/fledge-filter-threshold_build.sh && \
+        /tmp/fledge-filter-threshold_build.sh && \
+        echo '=============================================='
 
-RUN chmod +x /tmp/fledge-filter-scale-set_build.sh &&
-    /tmp/fledge-filter-scale-set_build.sh &&
-    echo '=============================================='
 
-COPY fledge/plugins/filter/fledge-filter-threshold_build.sh /tmp/
+  COPY fledge/plugins/notificationRule/fledge-notificationrule-average_build.sh /tmp/
 
-RUN chmod +x /tmp/fledge-filter-threshold_build.sh &&
-    /tmp/fledge-filter-threshold_build.sh &&
-    echo '=============================================='
+  RUN chmod +x /tmp/fledge-notificationrule-average_build.sh && \
+        /tmp/fledge-notificationrule-average_build.sh && \
+        echo '=============================================='
 
-COPY fledge/plugins/notificationRule/fledge-notificationrule-average_build.sh /tmp/
+  COPY fledge/plugins/notificationRule/fledge-notificationrule-outofbound_build.sh /tmp/
 
-RUN chmod +x /tmp/fledge-notificationrule-average_build.sh &&
-    /tmp/fledge-notificationrule-average_build.sh &&
-    echo '=============================================='
+  RUN chmod +x /tmp/fledge-notificationrule-outofbound_build.sh && \
+        /tmp/fledge-notificationrule-outofbound_build.sh && \
+        echo '=============================================='
 
-COPY fledge/plugins/notificationRule/fledge-notificationrule-outofbound_build.sh /tmp/
+ COPY fledge/plugins/notificationRule/fledge-notificationrule-simple-expression_build.sh /tmp/
 
-RUN chmod +x /tmp/fledge-notificationrule-outofbound_build.sh &&
-    /tmp/fledge-notificationrule-outofbound_build.sh &&
-    echo '=============================================='
+ RUN chmod +x /tmp/fledge-notificationrule-simple-expression_build.sh && \
+        /tmp/fledge-notificationrule-simple-expression_build.sh && \
+        echo '=============================================='
 
-COPY fledge/plugins/notificationRule/fledge-notificationrule-simple-expression_build.sh /tmp/
+ COPY fledge/plugins/notificationRule/fledge-notificationrule-watchdog_build.sh /tmp/
 
-RUN chmod +x /tmp/fledge-notificationrule-simple-expression_build.sh &&
-    /tmp/fledge-notificationrule-simple-expression_build.sh &&
-    echo '=============================================='
+ RUN chmod +x /tmp/fledge-notificationrule-watchdog_build.sh && \
+        /tmp/fledge-notificationrule-watchdog_build.sh && \
+        echo '=============================================='
 
-COPY fledge/plugins/notificationRule/fledge-notificationrule-watchdog_build.sh /tmp/
+ COPY fledge/plugins/notificationDelivery/fledge-notificationDelivery-asset_build.sh /tmp/
 
-RUN chmod +x /tmp/fledge-notificationrule-watchdog_build.sh &&
-    /tmp/fledge-notificationrule-watchdog_build.sh &&
-    echo '=============================================='
+ RUN chmod +x /tmp/fledge-notificationDelivery-asset_build.sh && \
+        /tmp/fledge-notificationDelivery-asset_build.sh && \
+        echo '=============================================='
 
-COPY fledge/plugins/notificationDelivery/fledge-notificationDelivery-asset_build.sh /tmp/
+ COPY fledge/plugins/notificationDelivery/fledge-notificationDelivery-control_build.sh /tmp/
 
-RUN chmod +x /tmp/fledge-notificationDelivery-asset_build.sh &&
-    /tmp/fledge-notificationDelivery-asset_build.sh &&
-    echo '=============================================='
+ RUN chmod +x /tmp/fledge-notificationDelivery-control_build.sh && \
+        /tmp/fledge-notificationDelivery-control_build.sh && \
+        echo '==============================================='
 
-COPY fledge/plugins/notificationDelivery/fledge-notificationDelivery-control_build.sh /tmp/
+ COPY fledge/plugins/notificationDelivery/fledge-notificationDelivery-email_build.sh /tmp/
 
-RUN chmod +x /tmp/fledge-notificationDelivery-control_build.sh &&
-    /tmp/fledge-notificationDelivery-control_build.sh &&
-    echo '==============================================='
+ RUN chmod +x /tmp/fledge-notificationDelivery-email_build.sh && \
+        /tmp/fledge-notificationDelivery-email_build.sh && \
+        echo '==============================================='
 
-COPY fledge/plugins/notificationDelivery/fledge-notificationDelivery-email_build.sh /tmp/
+ COPY fledge/plugins/notificationDelivery/fledge-notificationDelivery-fledge-mqtt_build.sh /tmp/
 
-RUN chmod +x /tmp/fledge-notificationDelivery-email_build.sh &&
-    /tmp/fledge-notificationDelivery-email_build.sh &&
-    echo '==============================================='
+ RUN chmod +x /tmp/fledge-notificationDelivery-fledge-mqtt_build.sh && \
+        /tmp/fledge-notificationDelivery-fledge-mqtt_build.sh && \
+        echo '==============================================='
 
-COPY fledge/plugins/notificationDelivery/fledge-notificationDelivery-fledge-mqtt_build.sh /tmp/
+ COPY fledge/plugins/notificationDelivery/fledge-notificationDelivery-mqtt_build.sh /tmp/
 
-RUN chmod +x /tmp/fledge-notificationDelivery-fledge-mqtt_build.sh &&
-    /tmp/fledge-notificationDelivery-fledge-mqtt_build.sh &&
-    echo '==============================================='
+ RUN chmod +x /tmp/fledge-notificationDelivery-mqtt_build.sh && \
+        /tmp/fledge-notificationDelivery-mqtt_build.sh && \
+        echo '==============================================='
 
-COPY fledge/plugins/notificationDelivery/fledge-notificationDelivery-mqtt_build.sh /tmp/
+ COPY fledge/plugins/notificationDelivery/fledge-notificationDelivery-operation_build.sh /tmp/
 
-RUN chmod +x /tmp/fledge-notificationDelivery-mqtt_build.sh &&
-    /tmp/fledge-notificationDelivery-mqtt_build.sh &&
-    echo '==============================================='
+ RUN chmod +x /tmp/fledge-notificationDelivery-operation_build.sh && \ 
+        /tmp/fledge-notificationDelivery-operation_build.sh && \
+        echo '==============================================='
 
-COPY fledge/plugins/notificationDelivery/fledge-notificationDelivery-operation_build.sh /tmp/
+ COPY fledge/plugins/notificationDelivery/fledge-notificationDelivery-python35_build.sh /tmp/
 
-RUN chmod +x /tmp/fledge-notificationDelivery-operation_build.sh && \ 
-/tmp/fledge-notificationDelivery-operation_build.sh &&
-    echo '==============================================='
+ RUN chmod +x /tmp/fledge-notificationDelivery-python35_build.sh && \
+        /tmp/fledge-notificationDelivery-python35_build.sh && \
+        echo '==============================================='
 
-COPY fledge/plugins/notificationDelivery/fledge-notificationDelivery-python35_build.sh /tmp/
+ COPY fledge/plugins/notificationDelivery/fledge-notificationDelivery-setpoint_build.sh /tmp/
 
-RUN chmod +x /tmp/fledge-notificationDelivery-python35_build.sh &&
-    /tmp/fledge-notificationDelivery-python35_build.sh &&
-    echo '==============================================='
+ RUN chmod +x /tmp/fledge-notificationDelivery-setpoint_build.sh && \
+        /tmp/fledge-notificationDelivery-setpoint_build.sh && \
+        echo '==============================================='
 
-COPY fledge/plugins/notificationDelivery/fledge-notificationDelivery-setpoint_build.sh /tmp/
+ COPY fledge/plugins/notificationDelivery/fledge-notificationDelivery-customasset_build.sh /tmp/
 
-RUN chmod +x /tmp/fledge-notificationDelivery-setpoint_build.sh &&
-    /tmp/fledge-notificationDelivery-setpoint_build.sh &&
-    echo '==============================================='
-
-COPY fledge/plugins/notificationDelivery/fledge-notificationDelivery-customasset_build.sh /tmp/
-
-RUN chmod +x /tmp/fledge-notificationDelivery-customasset_build.sh &&
-    /tmp/fledge-notificationDelivery-customasset_build.sh &&
-    echo '==============================================='
-
+ RUN chmod +x /tmp/fledge-notificationDelivery-customasset_build.sh && \
+        /tmp/fledge-notificationDelivery-customasset_build.sh && \
+        echo '==============================================='
+	  
 # COPY fledge-north-auditsnmp_build.sh /tmp/
 
 # RUN chmod +x /tmp/fledge-north-auditsnmp_build.sh && \

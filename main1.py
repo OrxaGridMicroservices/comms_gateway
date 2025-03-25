@@ -3,7 +3,7 @@ import requests
 import os
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any,List
 import response_models
 
 load_dotenv()
@@ -42,7 +42,7 @@ async def login(payload: LoginPayload):
     "/api/seed-stem-device",
     tags=["Device Management"],
     summary="List SEED-STEM devices with pagination",
-    response_model=response_models.SEEDSTEMDeviceListResponse
+    response_model=response_models.SEEDSTEMDeviceResponses  
 )
 async def list_seed_stem_devices(
     page: int = Query(1, ge=1, description="Page number (starts from 1)"),
@@ -62,17 +62,29 @@ async def list_seed_stem_devices(
 
     # Filter only Southbound and Northbound services
     seed_stem_services = [
-        response_models.SEEDSTEMDeviceInfo(**service)
+        response_models.SEEDSTEMDevicePayload(
+            device_name=service.get("name"),
+            enabled=(service.get("status") == "running"),
+            comms_protocol=service.get("protocol"),
+            mqtt_broker_host="mosquitto",  
+            mqtt_topic=f"{service.get('name')}/pdstop",  
+            asset_point_id="1"
+        )
         for service in services
         if service.get("type", "").lower() in ["southbound", "northbound"]
     ]
+
+    total_devices = len(seed_stem_services)  # Total count before slicing
 
     # Apply pagination
     start_index = (page - 1) * limit
     end_index = start_index + limit
     paginated_services = seed_stem_services[start_index:end_index]
 
-    return {"services": paginated_services}
+    return {
+        "devices": paginated_services  # Paginated result
+    }
+
 
 @app.post(
     "/comm_gw/seed-stem-device",
@@ -82,26 +94,23 @@ async def list_seed_stem_devices(
 )
 async def create_seed_stem_device(payload: response_models.SEEDSTEMDevicePayload):
     """
-    Create a new service in Comms_gw.
-    The minimum required fields are 'device_name' and 'enabled'.
-    For north or south services, the 'comms_protocol' field is required, and you can also pass an optional 'mqtt_broker_host', 'mqtt_topic', and 'asset_point_id'.
+    Create a new SEED-STEM device in Comms_gw.
+    Required fields: 'device_name' and 'enabled'.
+    For MQTT communication, 'comms_protocol' should be 'mqtt', with optional 'mqtt_broker_host', 'mqtt_topic', and 'asset_point_id'.
     """
-    url = f"{COMMS_GW_BASE_URL}/fledge/service"
-    headers = {"Authorization": get_auth_token()}
-    payload_dict = payload.dict(exclude_unset=True)
-
-    # Rename 'device_name' to 'name'
-    payload_dict["name"] = payload_dict.pop("device_name")
-
-    # Set 'type' to 'south' (since it's no longer passed in the request)
-    payload_dict["type"] = "south"
-
-    # Validate comms_protocol and set plugin
-    if payload.comms_protocol == "mqtt":
-        payload_dict["plugin"] = "mqtt-readings-binary"
-    else:
+    if payload.comms_protocol and payload.comms_protocol.lower() != "mqtt":
         raise HTTPException(status_code=400, detail={"message": "Invalid comms_protocol. Only 'mqtt' is supported."})
 
+    url = f"{COMMS_GW_BASE_URL}/fledge/service"
+    headers = {"Authorization": get_auth_token()}
+
+    # Convert payload to dictionary, exclude None values
+    payload_dict = payload.dict(exclude_none=True)
+    
+    # Rename 'device_name' to 'name'
+    payload_dict["name"] = payload_dict.pop("device_name")
+    payload_dict["type"] = "south"
+    payload_dict["plugin"] = "mqtt-readings-binary"
     payload_dict["config"] = {}
 
     if payload.mqtt_broker_host:
@@ -112,14 +121,17 @@ async def create_seed_stem_device(payload: response_models.SEEDSTEMDevicePayload
         payload_dict["config"]["assetName"] = {"value": str(payload.asset_point_id)}
 
     # Send request to Comms GW
-    response = requests.post(url, json=payload_dict, headers=headers)
+    try:
+        response = requests.post(url, json=payload_dict, headers=headers)
+        response.raise_for_status()  # Raise exception for HTTP errors
+        response_data = response.json()
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=500, detail={"message": str(e)})
+    except ValueError:
+        raise HTTPException(status_code=response.status_code, detail={"message": response.text})
 
-    if response.status_code != 200:
-        error_message = response.json().get("message", response.text)
-        raise HTTPException(status_code=response.status_code, detail={"message": error_message})
-
-    return response.json()
-
+    # Return the structured response
+    return response_models.SEEDSTEMDeviceResponse(**payload.dict(exclude_none=True))
 
 @app.put(
     "/comm_gw/seed-stem-device/{device_name}",
@@ -165,18 +177,18 @@ async def update_seed_stem_device(device_name: str, payload: response_models.SEE
     if create_response.status_code != 200:
         raise HTTPException(status_code=create_response.status_code, detail="Create failed: " + create_response.text)
 
-    return create_response.json()
+    return response_models.SEEDSTEMDeviceResponse(**payload.dict(exclude_none=True))
 
 @app.delete(
     "/comm_gw/seed-stem-device/{device_name}",
+    response_model=response_models.SEEDSTEMDeviceResponse, 
     tags=["Device Management"],
-    summary="Delete a SEED-STEM device",
-    response_model=response_models.DeleteSEEDSTEMDeviceResponse
+    summary="Delete a SEED-STEM device"
 )
 async def delete_seed_stem_device(device_name: str):
     url = f"{COMMS_GW_BASE_URL}/fledge/service/{device_name}"
     headers = {"Authorization": get_auth_token()}
-    
+
     response = requests.delete(url, headers=headers)
 
     if response.status_code == 404:
@@ -184,17 +196,25 @@ async def delete_seed_stem_device(device_name: str):
 
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail="Delete failed: " + response.text)
-    return {"result": "SEED-STEM device deleted successfully", "statusCode": 200}
+    
+    return response_models.SEEDSTEMDeviceResponse(
+        device_name=device_name,  
+        enabled=True,
+        comms_protocol="MQTT", 
+        mqtt_broker_host="mosquitto",  
+        mqtt_topic=f"{device_name}/pdstop",  
+        asset_point_id="1"
+    )
 
 
 @app.put(
     "/comm_gw/seed_stem_device/disable",
     tags=["Device Management"],
     summary="Disable a SEED-STEM device",
-    response_model=response_models.ScheduleResponseModel
+    response_model=response_models.SEEDSTEMDeviceResponse
     
 )
-async def disable_seed_stem_device(payload: response_models.SchedulePayload):
+async def disable_seed_stem_device(payload: response_models.DeviceSchedulePayload):
     url = f"{COMMS_GW_BASE_URL}/fledge/schedule/disable"
     headers = {"Authorization": get_auth_token()}
     
@@ -206,15 +226,22 @@ async def disable_seed_stem_device(payload: response_models.SchedulePayload):
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     
-    return response.json()
+    return response_models.SEEDSTEMDeviceResponse(
+        device_name=payload.device_name,  
+        enabled=False,
+        comms_protocol="MQTT", 
+        mqtt_broker_host="mosquitto",  
+        mqtt_topic=f"{payload.device_name}/pdstop",  
+        asset_point_id="1"
+    )
 
 @app.put(
     "/comm_gw/seed_stem_device/enable",
     tags=["Device Management"],
     summary="Enable a SEED-STEM device",
-    response_model=response_models.ScheduleResponseModel
+    response_model=response_models.SEEDSTEMDeviceResponse
 )
-async def enable_seed_stem_device(payload: response_models.SchedulePayload):
+async def enable_seed_stem_device(payload: response_models.DeviceSchedulePayload):
     url = f"{COMMS_GW_BASE_URL}/fledge/schedule/enable"
     headers = {"Authorization": get_auth_token()}
     
@@ -226,4 +253,11 @@ async def enable_seed_stem_device(payload: response_models.SchedulePayload):
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     
-    return response.json()
+    return response_models.SEEDSTEMDeviceResponse(
+        device_name=payload.device_name,  
+        enabled=True, 
+        comms_protocol="MQTT", 
+        mqtt_broker_host="mosquitto",  
+        mqtt_topic=f"{payload.device_name}/pdstop",  
+        asset_point_id="1"
+    )

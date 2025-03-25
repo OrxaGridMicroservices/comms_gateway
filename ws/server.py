@@ -24,7 +24,7 @@ async def websocket_endpoint(websocket: WebSocket):
             # Receive data from Fledge
             data = await websocket.receive_text()
             payload = json.loads(data)
-            #logging.info(f"Received payload from Fledge: {json.dumps(payload, indent=2)}")
+            logging.info(f"Received payload from Fledge: {json.dumps(payload, indent=2)}")
             
             # Broadcast to all connected clients
             await broadcast(json.dumps(payload))
@@ -83,28 +83,25 @@ async def websocket_endpoint(websocket: WebSocket, asset: str, topic: str):
 async def broadcast_message(message: str):
     """Broadcasts messages to clients subscribed to specific asset and topic combinations."""
     try:
-        payload_list = json.loads(message)
+        payload = json.loads(message)
+        asset = payload.get("asset_code")
+        readings = payload.get("reading", {})
+        topic = readings.get("topic")
         
-        for payload in payload_list:
-            asset = payload.get("asset")
-            readings = payload.get("readings", {})
-            topic = readings.get("topic")
-            
-            if not asset or not topic:
-                logging.warning("Payload missing asset or topic; skipping this payload.")
-                continue
+        if not asset or not topic:
+            logging.warning("Payload missing asset or topic; skipping this payload.")
 
-            client_key = (asset, topic.split("/")[1])
-            if client_key in conn_clients:
-                for client in conn_clients[client_key].copy():
-                    try:
-                        await client.send_text(json.dumps(readings))
-                    except Exception as e:
-                        logging.error(f"Failed to send message to client: {e}")
-                        conn_clients[client_key].remove(client)
-                # Clean up empty client sets
-                if not conn_clients[client_key]:
-                    del conn_clients[client_key]
+        client_key = (asset, topic.split("/")[1])
+        if client_key in conn_clients:
+            for client in conn_clients[client_key].copy():
+                try:
+                    await client.send_text(json.dumps(readings))
+                except Exception as e:
+                    logging.error(f"Failed to send message to client: {e}")
+                    conn_clients[client_key].remove(client)
+            # Clean up empty client sets
+            if not conn_clients[client_key]:
+                del conn_clients[client_key]
     except json.JSONDecodeError as e:
         logging.error(f"Invalid JSON message: {e}")
     except Exception as e:

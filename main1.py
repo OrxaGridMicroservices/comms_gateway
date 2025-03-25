@@ -3,7 +3,7 @@ import requests
 import os
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
-from typing import Optional, Dict, Any,List
+from typing import Optional, Dict, Any
 import response_models
 
 load_dotenv()
@@ -38,11 +38,13 @@ async def login(payload: LoginPayload):
         raise HTTPException(status_code=response.status_code, detail=response.text)
     return response.json()
 
+
+
 @app.get(
     "/api/seed-stem-device",
     tags=["Device Management"],
     summary="List SEED-STEM devices with pagination",
-    response_model=response_models.SEEDSTEMDeviceResponses  
+    response_model=response_models.SEEDSTEMDeviceResponses
 )
 async def list_seed_stem_devices(
     page: int = Query(1, ge=1, description="Page number (starts from 1)"),
@@ -62,13 +64,10 @@ async def list_seed_stem_devices(
 
     # Filter only Southbound and Northbound services
     seed_stem_services = [
-        response_models.SEEDSTEMDevicePayload(
+        response_models.SEEDSTEMDeviceListResponses(
             device_name=service.get("name"),
             enabled=(service.get("status") == "running"),
-            comms_protocol=service.get("protocol"),
-            mqtt_broker_host="mosquitto",  
-            mqtt_topic=f"{service.get('name')}/pdstop",  
-            asset_point_id="1"
+            comms_protocol="mqtt-readings-binary"
         )
         for service in services
         if service.get("type", "").lower() in ["southbound", "northbound"]
@@ -81,18 +80,16 @@ async def list_seed_stem_devices(
     end_index = start_index + limit
     paginated_services = seed_stem_services[start_index:end_index]
 
-    return {
-        "devices": paginated_services  # Paginated result
-    }
+    return response_models.SEEDSTEMDeviceResponses(devices=paginated_services)
 
 
 @app.post(
     "/comm_gw/seed-stem-device",
     tags=["Device Management"],
     summary="Create a SEED-STEM device",
-    response_model=response_models.SEEDSTEMDeviceResponse
+    response_model=response_models.CreateSEEDSTEMDevicePayload
 )
-async def create_seed_stem_device(payload: response_models.SEEDSTEMDevicePayload):
+async def create_seed_stem_device(payload: response_models.CreateSEEDSTEMDevicePayload):
     """
     Create a new SEED-STEM device in Comms_gw.
     Required fields: 'device_name' and 'enabled'.
@@ -131,15 +128,15 @@ async def create_seed_stem_device(payload: response_models.SEEDSTEMDevicePayload
         raise HTTPException(status_code=response.status_code, detail={"message": response.text})
 
     # Return the structured response
-    return response_models.SEEDSTEMDeviceResponse(**payload.dict(exclude_none=True))
+    return response_models.CreateSEEDSTEMDevicePayload(**payload.dict(exclude_none=True))
 
 @app.put(
     "/comm_gw/seed-stem-device/{device_name}",
     tags=["Device Management"],
     summary="Update a SEED-STEM device",
-    response_model=response_models.SEEDSTEMDeviceResponse
+    response_model=response_models.CreateSEEDSTEMDevicePayload
 )
-async def update_seed_stem_device(device_name: str, payload: response_models.SEEDSTEMDevicePayload):
+async def update_seed_stem_device(device_name: str, payload: response_models.CreateSEEDSTEMDevicePayload):
     """
     Update an existing SEED-STEM device by deleting and recreating it with new values.
     """
@@ -177,11 +174,11 @@ async def update_seed_stem_device(device_name: str, payload: response_models.SEE
     if create_response.status_code != 200:
         raise HTTPException(status_code=create_response.status_code, detail="Create failed: " + create_response.text)
 
-    return response_models.SEEDSTEMDeviceResponse(**payload.dict(exclude_none=True))
+    return response_models.CreateSEEDSTEMDevicePayload(**payload.dict(exclude_none=True))
 
 @app.delete(
     "/comm_gw/seed-stem-device/{device_name}",
-    response_model=response_models.SEEDSTEMDeviceResponse, 
+    response_model=response_models.DeleteSEEDSTEMDeviceResponse, 
     tags=["Device Management"],
     summary="Delete a SEED-STEM device"
 )
@@ -197,21 +194,17 @@ async def delete_seed_stem_device(device_name: str):
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail="Delete failed: " + response.text)
     
-    return response_models.SEEDSTEMDeviceResponse(
-        device_name=device_name,  
-        enabled=True,
-        comms_protocol="MQTT", 
-        mqtt_broker_host="mosquitto",  
-        mqtt_topic=f"{device_name}/pdstop",  
-        asset_point_id="1"
-    )
+    return {
+      "result": f"SEED-STEM device with name {device_name} deleted successfully!",
+      "statusCode": 200
+   }
 
 
 @app.put(
     "/comm_gw/seed_stem_device/disable",
     tags=["Device Management"],
     summary="Disable a SEED-STEM device",
-    response_model=response_models.SEEDSTEMDeviceResponse
+    response_model=response_models.DeviceScheduleResponseModel
     
 )
 async def disable_seed_stem_device(payload: response_models.DeviceSchedulePayload):
@@ -226,20 +219,16 @@ async def disable_seed_stem_device(payload: response_models.DeviceSchedulePayloa
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     
-    return response_models.SEEDSTEMDeviceResponse(
+    return response_models.DeviceScheduleResponseModel(
         device_name=payload.device_name,  
-        enabled=False,
-        comms_protocol="MQTT", 
-        mqtt_broker_host="mosquitto",  
-        mqtt_topic=f"{payload.device_name}/pdstop",  
-        asset_point_id="1"
+        enabled=False
     )
 
 @app.put(
     "/comm_gw/seed_stem_device/enable",
     tags=["Device Management"],
     summary="Enable a SEED-STEM device",
-    response_model=response_models.SEEDSTEMDeviceResponse
+    response_model=response_models.DeviceScheduleResponseModel
 )
 async def enable_seed_stem_device(payload: response_models.DeviceSchedulePayload):
     url = f"{COMMS_GW_BASE_URL}/fledge/schedule/enable"
@@ -253,11 +242,7 @@ async def enable_seed_stem_device(payload: response_models.DeviceSchedulePayload
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
     
-    return response_models.SEEDSTEMDeviceResponse(
+    return response_models.DeviceScheduleResponseModel(
         device_name=payload.device_name,  
-        enabled=True, 
-        comms_protocol="MQTT", 
-        mqtt_broker_host="mosquitto",  
-        mqtt_topic=f"{payload.device_name}/pdstop",  
-        asset_point_id="1"
+        enabled=True
     )

@@ -1,8 +1,15 @@
 from pydantic import BaseModel, Field
 from typing import List, Optional
 
+class SEEDSTEMDeviceListResponses(BaseModel):
+    device_name: str
+    enabled: bool
+    comms_protocol: Optional[str] = None
 
-class SEEDSTEMDevicePayload(BaseModel):
+class SEEDSTEMDeviceResponses(BaseModel):
+    devices: List[SEEDSTEMDeviceListResponses]
+
+class CreateSEEDSTEMDevicePayload(BaseModel):
     device_name: str = Field(..., example="MSEDCL-STMS1")
     enabled: bool = Field(..., example=True)
     comms_protocol: Optional[str] = Field(..., example="mqtt")
@@ -10,18 +17,19 @@ class SEEDSTEMDevicePayload(BaseModel):
     mqtt_topic: Optional[str] = Field(None, example="STMS1/pdstop")
     asset_point_id: Optional[str] = Field(None, example="1")
 
-class SEEDSTEMDeviceResponse(BaseModel):
-    device_name: str
-    enabled: bool
-    comms_protocol: Optional[str]
-    mqtt_broker_host: Optional[str]
-    mqtt_topic: Optional[str]
-    asset_point_id: Optional[str]
 
-class SEEDSTEMDeviceResponses(BaseModel):
-    devices: List[SEEDSTEMDevicePayload]
-
+class DeleteSEEDSTEMDeviceResponse(BaseModel):
+    result: str = Field(
+        ...,
+        example=["SEED-STEM device deleted successfully"],
+        description="Response message"
+    )
+    statusCode: int = Field(..., example=[200])
 
 class DeviceSchedulePayload(BaseModel):
     device_name: str = Field(..., example="MSEDCL-STMS1")
+
+class DeviceScheduleResponseModel(BaseModel):
+    device_name: str = Field(..., example="MSEDCL-STMS1")
+    enabled: bool = Field(..., example=True)
 

@@ -65,25 +65,31 @@ async def list_seed_stem_devices(
     services = response.json().get("services", [])
 
     # Filter only Southbound and Northbound services
-    seed_stem_services = [
-        response_models.SEEDSTEMDeviceListResponses(
-            device_name=service.get("name"),
-            enabled=(service.get("status") == "running"),
-            comms_protocol="mqtt-readings-binary"
-        )
+    seed_stem_services = {
+        service.get("name"): {
+            "enabled": service.get("status") == "running",
+            "comms_protocol": "mqtt-readings-binary"
+        }
         for service in services
         if service.get("type", "").lower() in ["southbound", "northbound"]
-    ]
-
-    total_devices = len(seed_stem_services)  # Total count before slicing
+    }
 
     # Apply pagination
+    device_names = list(seed_stem_services.keys())
     start_index = (page - 1) * limit
     end_index = start_index + limit
-    paginated_services = seed_stem_services[start_index:end_index]
+    paginated_device_names = device_names[start_index:end_index]
+
+    paginated_services = [
+        response_models.SEEDSTEMDeviceListResponses(
+            device_name=name,
+            enabled=seed_stem_services[name]["enabled"],
+            comms_protocol=seed_stem_services[name]["comms_protocol"]
+        )
+        for name in paginated_device_names
+    ]
 
     return response_models.SEEDSTEMDeviceResponses(devices=paginated_services)
-
 
 @app.get("/comm_gw/seed-stem-device/{device_name}",
          tags=["Device Management"],
@@ -91,18 +97,25 @@ async def list_seed_stem_devices(
          response_model=response_models.CreateSEEDSTEMDevicePayload)
 
 async def get_category(device_name: str):
+    # Retrieve the latest list of devices
+    devices_response = await list_seed_stem_devices(page=1, limit=1000)  # Fetch all devices
+    devices_dict = {device.device_name: device.enabled for device in devices_response.devices}
+
+    # Check if the device exists in the list
+    enabled = devices_dict.get(device_name, False)
+
     url = f"{COMMS_GW_BASE_URL}/fledge/category/{device_name}"
     headers = {"Authorization": get_auth_token()}
     response = requests.get(url, headers=headers)
-    
+
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.text)
-    
+
     data = response.json()
 
     formatted_data = {
         "device_name": device_name,
-        "enabled":data.get("enableHttp", {}).get("value", ""),
+        "enabled": enabled,  # Now dynamically retrieved
         "comms_protocol": data.get("plugin", {}).get("value", ""),
         "mqtt_broker_host": data.get("brokerHost", {}).get("value", ""),
         "mqtt_topic": data.get("topic", {}).get("value", ""),

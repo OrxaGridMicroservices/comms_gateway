@@ -12,7 +12,7 @@
 #     description="Fladge FastAPI and Swagger",
 #     version="0.1.0")
 
-# FLEDGE_BASE_URL = os.getenv("FLEDGE_BASE_URL", "http://fledge:8081")
+# FLEDGE_BASE_URL = os.getenv("COMMS_GW_BASE_URL", "http://comms_gw:8081")
 
 # class LoginPayload(BaseModel):
 #     username: str

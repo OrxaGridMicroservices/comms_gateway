@@ -2,9 +2,9 @@ from pydantic import BaseModel, Field
 from typing import List, Optional
 
 class SEEDSTEMDeviceListResponses(BaseModel):
-    device_name: str
-    enabled: bool
-    comms_protocol: Optional[str] = None
+    device_name: str = Field(..., example="MSEDCL-STMS1")
+    enabled: bool = Field(..., example=True)
+    comms_protocol: Optional[str] = Field(..., example="mqtt")
 
 class SEEDSTEMDeviceResponses(BaseModel):
     devices: List[SEEDSTEMDeviceListResponses]

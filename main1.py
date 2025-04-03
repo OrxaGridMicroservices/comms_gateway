@@ -15,7 +15,9 @@ app = FastAPI(
     version="0.1.0"
 )
 
-COMMS_GW_BASE_URL = os.getenv("COMMS_GW_BASE_URL", "http://comms_gw:8081")
+COMMS_GW_BASE_URL = os.getenv("COMMS_GW_BASE_URL")
+FLEDGE_USERNAME = os.getenv("FLEDGE_USERNAME")
+FLEDGE_PASSWORD = os.getenv("FLEDGE_PASSWORD")
 
 class LoginPayload(BaseModel):
     username: str
@@ -23,7 +25,7 @@ class LoginPayload(BaseModel):
 
 def get_auth_token():
     url = f"{COMMS_GW_BASE_URL}/fledge/login"
-    payload = {"username": "admin", "password": "fledge"}
+    payload = {"username": FLEDGE_USERNAME, "password": FLEDGE_PASSWORD}
     response = requests.post(url, json=payload)
     if response.status_code == 200:
         return response.json().get("token")
@@ -41,9 +43,9 @@ async def login(payload: LoginPayload):
 
 
 @app.get(
-    "/api/seed-stem-device",
+    "/comm_gw/seed-stem-device",
     tags=["Device Management"],
-    summary="List SEED-STEM devices with pagination",
+    summary="List SEED-STEM devices",
     response_model=response_models.SEEDSTEMDeviceResponses
 )
 async def list_seed_stem_devices(
@@ -83,6 +85,32 @@ async def list_seed_stem_devices(
     return response_models.SEEDSTEMDeviceResponses(devices=paginated_services)
 
 
+@app.get("/comm_gw/seed-stem-device/{device_name}",
+         tags=["Device Management"],
+         summary="Get SEED-STEM devices by device name",
+         response_model=response_models.CreateSEEDSTEMDevicePayload)
+
+async def get_category(device_name: str):
+    url = f"{COMMS_GW_BASE_URL}/fledge/category/{device_name}"
+    headers = {"Authorization": get_auth_token()}
+    response = requests.get(url, headers=headers)
+    
+    if response.status_code != 200:
+        raise HTTPException(status_code=response.status_code, detail=response.text)
+    
+    data = response.json()
+
+    formatted_data = {
+        "device_name": device_name,
+        "enabled":data.get("enableHttp", {}).get("value", ""),
+        "comms_protocol": data.get("plugin", {}).get("value", ""),
+        "mqtt_broker_host": data.get("brokerHost", {}).get("value", ""),
+        "mqtt_topic": data.get("topic", {}).get("value", ""),
+        "asset_point_id": data.get("assetName", {}).get("value", "")
+    }
+
+    return formatted_data
+
 @app.post(
     "/comm_gw/seed-stem-device",
     tags=["Device Management"],
@@ -107,7 +135,13 @@ async def create_seed_stem_device(payload: response_models.CreateSEEDSTEMDeviceP
     # Rename 'device_name' to 'name'
     payload_dict["name"] = payload_dict.pop("device_name")
     payload_dict["type"] = "south"
-    payload_dict["plugin"] = "mqtt-readings-binary"
+    # Validate protocol and set plugin
+    if payload.comms_protocol == "mqtt":
+        payload_dict["plugin"] = "mqtt-readings-binary"
+    else:
+        raise HTTPException(status_code=400, detail="Invalid comms_protocol. Only 'mqtt' is supported.")
+
+    # Build config dictionary
     payload_dict["config"] = {}
 
     if payload.mqtt_broker_host:

@@ -47,18 +47,22 @@ services:
       comms_gw:
         condition: service_started
     environment:
-      - COMMS_GW_BASE_URL=${COMMS_GW_BASE_URL}
+      - COMMS_GW_BASE_URL=${COMMS_GW_BASE_URL:-http://comms_gw:8081}
+      - FLEDGE_USERNAME=${FLEDGE_USERNAME:-admin}
+      - FLEDGE_PASSWORD=${FLEDGE_PASSWORD:-fledge}
       - TZ=${TZ}
+    volumes:
+      - .:/app
     command: >
       bash -c "
-       uvicorn main1:app --host 0.0.0.0 --port 8000 & 
+       uvicorn main1:app --host 0.0.0.0 --port 8000 --reload & 
        until curl -s -o /dev/null -w '%{http_code}' http://fledge:8081/fledge/ping | grep -q '200'; do
          echo 'Waiting for Fledge to be online...';
-         sleep 2;
-       done;
+        sleep 2;
+      done;
        echo 'Fledge is online. Proceeding with configuration...';
-         curl -X PUT 'http://fledge:8081/fledge/category/rest_api/authMethod' -H 'Content-Type: application/json' -d '{\"value\": \"password\"}' &&
-         curl -X PUT 'http://fledge:8081/fledge/category/rest_api/authentication' -H 'Content-Type: application/json' -d '{\"value\": \"mandatory\"}' &&
+      curl -X PUT 'http://fledge:8081/fledge/category/rest_api/authMethod' -H 'Content-Type: application/json' -d '{\"value\": \"password\"}' &&
+      curl -X PUT 'http://fledge:8081/fledge/category/rest_api/authentication' -H 'Content-Type: application/json' -d '{\"value\": \"mandatory\"}' &&
          curl -X PUT 'http://fledge:8081/fledge/restart'&&
          tail -f /dev/null"
 

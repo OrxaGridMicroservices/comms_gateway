@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Body
 import requests
 import os
 from dotenv import load_dotenv
@@ -91,6 +91,8 @@ async def list_seed_stem_devices(
 
     return response_models.SEEDSTEMDeviceResponses(devices=paginated_services)
 
+
+# https://fledge-iot.readthedocs.io/en/latest/rest_api_guide/03_RESTadmin.html#get-category
 @app.get("/comm_gw/seed-stem-device/{device_name}",
          tags=["Device Management"],
          summary="Get SEED-STEM devices by device name",
@@ -177,51 +179,52 @@ async def create_seed_stem_device(payload: response_models.CreateSEEDSTEMDeviceP
     # Return the structured response
     return response_models.CreateSEEDSTEMDevicePayload(**payload.dict(exclude_none=True))
 
-@app.put(
-    "/comm_gw/seed-stem-device/{device_name}",
-    tags=["Device Management"],
-    summary="Update a SEED-STEM device",
-    response_model=response_models.CreateSEEDSTEMDevicePayload
-)
-async def update_seed_stem_device(device_name: str, payload: response_models.CreateSEEDSTEMDevicePayload):
-    """
-    Update an existing SEED-STEM device by deleting and recreating it with new values.
-    """
-    delete_url = f"{COMMS_GW_BASE_URL}/fledge/service/{device_name}"
-    headers = {"Authorization": get_auth_token()}
-    
-    # Delete the existing device
-    delete_response = requests.delete(delete_url, headers=headers)
-    if delete_response.status_code != 200:
-        raise HTTPException(status_code=delete_response.status_code, detail="Delete failed: " + delete_response.text)
+@app.put("/comm_gw/seed-stem-device/{device_name}",
+         tags=["Device Management"],
+         summary="Update SEED-STEM device by device name")
+async def update_seed_stem_device(
+    device_name: str,
+    update_payload: response_models.CreateSEEDSTEMDevicePayload = Body(...)
+):
+    # Retrieve all devices
+    devices_response = await list_seed_stem_devices(page=1, limit=1000)
+    devices_dict = {device.device_name: device.enabled for device in devices_response.devices}
 
-    # Prepare the payload for re-creation
-    payload_dict = payload.dict(exclude_unset=True)
-    payload_dict["name"] = payload_dict.pop("device_name")
-    payload_dict["type"] = "south"
+    # Check if the device exists
+    if device_name not in devices_dict:
+        raise HTTPException(status_code=404, detail="Device not found")
 
-    # Validate protocol and set plugin
-    if payload.comms_protocol == "mqtt":
-        payload_dict["plugin"] = "mqtt-readings-binary"
-    else:
-        raise HTTPException(status_code=400, detail="Invalid comms_protocol. Only 'mqtt' is supported.")
+    headers = {
+        "Authorization": get_auth_token(),
+        "Content-Type": "application/json"
+    }
 
-    # Build config dictionary
-    payload_dict["config"] = {}
-    if payload.mqtt_broker_host:
-        payload_dict["config"]["brokerHost"] = {"value": payload.mqtt_broker_host}
-    if payload.mqtt_topic:
-        payload_dict["config"]["topic"] = {"value": payload.mqtt_topic}
-    if payload.asset_point_id is not None:
-        payload_dict["config"]["assetName"] = {"value": str(payload.asset_point_id)}
+    # Send individual updates to Fledge
+    update_fields = {
+        "brokerHost": update_payload.mqtt_broker_host,
+        "topic": update_payload.mqtt_topic,
+        "assetName": update_payload.asset_point_id
+    }
 
-    # Create the updated device
-    create_url = f"{COMMS_GW_BASE_URL}/fledge/service"
-    create_response = requests.post(create_url, json=payload_dict, headers=headers)
-    if create_response.status_code != 200:
-        raise HTTPException(status_code=create_response.status_code, detail="Create failed: " + create_response.text)
+    for key, value in update_fields.items():
+        url = f"{COMMS_GW_BASE_URL}/fledge/category/{device_name}/{key}"
+        response = requests.put(url, json={"value": str(value)}, headers=headers)
+        if response.status_code != 200:
+            raise HTTPException(status_code=response.status_code,
+                                detail=f"Failed to update '{key}': {response.text}")
 
-    return response_models.CreateSEEDSTEMDevicePayload(**payload.dict(exclude_none=True))
+    latest_devices_response = await list_seed_stem_devices(page=1, limit=1000)
+    latest_devices_dict = {device.device_name: device.enabled for device in latest_devices_response.devices}
+    enabled = latest_devices_dict.get(device_name, False)
+
+    return {
+        "device_name": device_name,
+        "enabled": enabled, 
+        "comms_protocol": update_payload.comms_protocol,  
+        "mqtt_broker_host": update_payload.mqtt_broker_host,
+        "mqtt_topic": update_payload.mqtt_topic,
+        "asset_point_id": update_payload.asset_point_id
+    }
 
 @app.delete(
     "/comm_gw/seed-stem-device/{device_name}",

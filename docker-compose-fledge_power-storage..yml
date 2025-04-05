@@ -12,12 +12,14 @@ services:
     volumes:
       - fledge:/usr/local/fledge
       #- ./plugins/north/ws_north:/usr/local/fledge/python/fledge/plugins/north/ws_north
+      #- ./plugins/south/mqtt-readings-binary-publish:/usr/local/fledge/python/fledge/plugins/south/mqtt-readings-binary-publish
 
     ports:
       - 8081:8081 # Fledge management API
       - 6685:6685 # Fledge south API
       - 6683:6683
       - 8080:8080 # Optional: Additional API if configured
+      - 8082:8082
     entrypoint: >
        sh -c "pg_isready -q || service postgresql start &&
          sudo -u postgres createuser -d $(whoami) || echo 'User already exists' &&

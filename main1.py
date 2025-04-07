@@ -92,18 +92,36 @@ async def list_seed_stem_devices(
     return response_models.SEEDSTEMDeviceResponses(devices=paginated_services)
 
 
+# featch all devices
+async def get_all_seed_stem_devices():
+    all_devices = []
+    page = 1
+    limit = 1000
+
+    while True:
+        response = await list_seed_stem_devices(page=page, limit=limit)
+        if not response.devices:
+            break
+        all_devices.extend(response.devices)
+        page += 1
+
+    return all_devices
+
+
 # https://fledge-iot.readthedocs.io/en/latest/rest_api_guide/03_RESTadmin.html#get-category
 @app.get("/comm_gw/seed-stem-device/{device_name}",
          tags=["Device Management"],
          summary="Get SEED-STEM devices by device name",
          response_model=response_models.CreateSEEDSTEMDevicePayload)
-
 async def get_category(device_name: str):
-    # Retrieve the latest list of devices
-    devices_response = await list_seed_stem_devices(page=1, limit=1000)  # Fetch all devices
-    devices_dict = {device.device_name: device.enabled for device in devices_response.devices}
+    # Retrieve all devices
+    all_devices = await get_all_seed_stem_devices()
+    devices_dict = {device.device_name: device.enabled for device in all_devices}
 
-    # Check if the device exists in the list
+    # Check if the device exists
+    if device_name not in devices_dict:
+        raise HTTPException(status_code=404, detail="Device not found")
+
     enabled = devices_dict.get(device_name, False)
 
     url = f"{COMMS_GW_BASE_URL}/fledge/category/{device_name}"
@@ -115,16 +133,14 @@ async def get_category(device_name: str):
 
     data = response.json()
 
-    formatted_data = {
+    return {
         "device_name": device_name,
-        "enabled": enabled,  # Now dynamically retrieved
+        "enabled": enabled,
         "comms_protocol": data.get("plugin", {}).get("value", ""),
         "mqtt_broker_host": data.get("brokerHost", {}).get("value", ""),
         "mqtt_topic": data.get("topic", {}).get("value", ""),
         "asset_point_id": data.get("assetName", {}).get("value", "")
     }
-
-    return formatted_data
 
 @app.post(
     "/comm_gw/seed-stem-device",
@@ -181,25 +197,23 @@ async def create_seed_stem_device(payload: response_models.CreateSEEDSTEMDeviceP
 
 @app.put("/comm_gw/seed-stem-device/{device_name}",
          tags=["Device Management"],
-         summary="Update SEED-STEM device by device name")
+         summary="Update SEED-STEM device by device name",
+         response_model=response_models.CreateSEEDSTEMDevicePayload)
 async def update_seed_stem_device(
     device_name: str,
     update_payload: response_models.CreateSEEDSTEMDevicePayload = Body(...)
 ):
-    # Retrieve all devices
-    devices_response = await list_seed_stem_devices(page=1, limit=1000)
-    devices_dict = {device.device_name: device.enabled for device in devices_response.devices}
+    # Get all devices from all pages
+    all_devices = await get_all_seed_stem_devices()
+    devices_dict = {device.device_name: device.enabled for device in all_devices}
 
-    # Check if the device exists
+    # Validate existence
     if device_name not in devices_dict:
         raise HTTPException(status_code=404, detail="Device not found")
 
-    headers = {
-        "Authorization": get_auth_token(),
-        "Content-Type": "application/json"
-    }
+    headers = {"Authorization": get_auth_token()}
 
-    # Send individual updates to Fledge
+    # Fields to update in Fledge
     update_fields = {
         "brokerHost": update_payload.mqtt_broker_host,
         "topic": update_payload.mqtt_topic,
@@ -210,17 +224,29 @@ async def update_seed_stem_device(
         url = f"{COMMS_GW_BASE_URL}/fledge/category/{device_name}/{key}"
         response = requests.put(url, json={"value": str(value)}, headers=headers)
         if response.status_code != 200:
-            raise HTTPException(status_code=response.status_code,
-                                detail=f"Failed to update '{key}': {response.text}")
+            raise HTTPException(
+                status_code=response.status_code,
+                detail=f"Failed to update '{key}': {response.text}"
+            )
 
-    latest_devices_response = await list_seed_stem_devices(page=1, limit=1000)
-    latest_devices_dict = {device.device_name: device.enabled for device in latest_devices_response.devices}
-    enabled = latest_devices_dict.get(device_name, False)
+    # Re-check device status after update
+    refreshed_devices = await get_all_seed_stem_devices()
+    enabled = next((d.enabled for d in refreshed_devices if d.device_name == device_name), False)
+
+    # Fetch plugin (comms_protocol) info
+    plugin_url = f"{COMMS_GW_BASE_URL}/fledge/category/{device_name}/plugin"
+    plugin_response = requests.get(plugin_url, headers=headers)
+    if plugin_response.status_code != 200:
+        raise HTTPException(
+            status_code=plugin_response.status_code,
+            detail=f"Failed to fetch comms_protocol: {plugin_response.text}"
+        )
+    comms_protocol = plugin_response.json().get("value", "")
 
     return {
         "device_name": device_name,
-        "enabled": enabled, 
-        "comms_protocol": update_payload.comms_protocol,  
+        "enabled": enabled,
+        "comms_protocol": comms_protocol,
         "mqtt_broker_host": update_payload.mqtt_broker_host,
         "mqtt_topic": update_payload.mqtt_topic,
         "asset_point_id": update_payload.asset_point_id

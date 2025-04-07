@@ -32,38 +32,45 @@ def doit(reading):
     new_entries = {}  # Store updates separately
     recorded_count = 0  # Track the number of recorded parameters
 
+     # Decode byte keys in `reading`
     reading_c = {k.decode("utf-8") if isinstance(k, bytes) else k: v for k, v in reading.items()}
 
-    for param, value in reading_c.items():
-        if param in LIMITS and recorded_count < MAX_LIMIT_VIOLATION:
-            lower_limit = LIMITS[param]["LOWER_LIMIT"]
-            upper_limit = LIMITS[param]["UPPER_LIMIT"]
+    # Extract and decode topic safely
+    topic = reading_c.get("topic", b"").decode("utf-8") if isinstance(reading_c.get("topic"), bytes) else reading_c.get("topic", "")
 
-            # Determine the limit violation status
-            if value > upper_limit:
-                violation_status = "UPPER"
-                exceeded_limit = upper_limit  # Store upper limit
-            elif value < lower_limit:
-                violation_status = "LOWER"
-                exceeded_limit = lower_limit  # Store lower limit
-            else:
-                violation_status = "NORMAL"
-                exceeded_limit = None  # No limit exceeded
+    # Check for "pdstop" in topic
+    if "pdstop" in topic:
+
+      for param, value in reading_c.items():
+          if param in LIMITS and recorded_count < MAX_LIMIT_VIOLATION:
+              lower_limit = LIMITS[param]["LOWER_LIMIT"]
+              upper_limit = LIMITS[param]["UPPER_LIMIT"]
+
+              # Determine the limit violation status
+              if value > upper_limit:
+                  violation_status = "UPPER"
+                  exceeded_limit = upper_limit  # Store upper limit
+              elif value < lower_limit:
+                  violation_status = "LOWER"
+                  exceeded_limit = lower_limit  # Store lower limit
+              else:
+                  violation_status = "NORMAL"
+                  exceeded_limit = None  # No limit exceeded
 
 
-            # Record the parameter and status (even if NORMAL)
-            new_entries[bytes(f"Parameter{param_index}", "utf-8")] = param
-            new_entries[bytes(f"LimitViolation{param_index}", "utf-8")] = violation_status
-            new_entries[f"Value{param_index}".encode("utf-8")] = value
-            if exceeded_limit is not None:
-                new_entries[f"Limit{param_index}".encode("utf-8")] = exceeded_limit
+              # Record the parameter and status (even if NORMAL)
+              new_entries[bytes(f"Parameter{param_index}", "utf-8")] = param
+              new_entries[bytes(f"LimitViolation{param_index}", "utf-8")] = violation_status
+              new_entries[f"Value{param_index}".encode("utf-8")] = value
+              if exceeded_limit is not None:
+                  new_entries[f"Limit{param_index}".encode("utf-8")] = exceeded_limit
 
-            
-            param_index += 1
-            recorded_count += 1  # Increment count
+              
+              param_index += 1
+              recorded_count += 1  # Increment count
 
-    #Safely update dictionary AFTER iteration
-    reading.update(new_entries)
+      #Safely update dictionary AFTER iteration
+      reading.update(new_entries)
 
 
 # process one or more readings

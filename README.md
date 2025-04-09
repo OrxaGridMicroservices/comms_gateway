@@ -43,3 +43,13 @@ Bidirectional gateway for communications protocols used by power systems
 we can see all logs in fledge version 2.6.0 by adjusting the settings. Navigate to Settings > Advanced > Minimum Log Level and set it to Debug.
 By default, this setting is set to Error
 ![alt text](image.png)
+
+# Converting the End of Line Sequence from CRLF to LF
+
+First disable the autoCRLF in the git config by running the following command in your terminal git config core.autocrlf false
+
+Then remove the cached files in the git. Run the following command: git rm --cached -r .
+
+Then reset the project files by executing the following command to complete conversion. git reset --hard
+
+That's it now all the files that have CRLF will be converted to LF.

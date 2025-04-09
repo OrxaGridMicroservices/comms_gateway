@@ -1,132 +1,976 @@
 {
-	"info": {
-		"_postman_id": "a247e965-71aa-493d-89eb-da8f4e4ff2b3",
-		"name": "Fledge",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "33228236"
-	},
-	"item": [
-		{
-			"name": "http://0.0.0.0:6683/sensor-reading",
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "[\r\n    {\r\n        \"timestamp\": \"2020-07-08 16:16:07.263657+00:00\",\r\n        \"asset\": \"test_asset\",\r\n        \"readings\": {\r\n            \"voltage\": 239.4,\r\n            \"current\": 16786778\r\n        }\r\n    }\r\n]\r\n",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "http://0.0.0.0:6683/sensor-reading",
-					"protocol": "http",
-					"host": [
-						"0",
-						"0",
-						"0",
-						"0"
-					],
-					"port": "6683",
-					"path": [
-						"sensor-reading"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "http://localhost:8081/fledge/service",
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
-			"request": {
-				"method": "GET",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "http://localhost:8081/fledge/asset/http-test_asset?limit=2",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8081",
-					"path": [
-						"fledge",
-						"asset",
-						"http-test_asset"
-					],
-					"query": [
-						{
-							"key": "format",
-							"value": "repository",
-							"disabled": true
-						},
-						{
-							"key": "name",
-							"value": "http_south",
-							"disabled": true
-						},
-						{
-							"key": "type",
-							"value": "south",
-							"disabled": true
-						},
-						{
-							"key": "limit",
-							"value": "2"
-						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": " http://172.17.0.2:8082/api/v4/mqtt/publish",
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
-			"request": {
-				"method": "GET",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n    \"topic\": \"test/topic\",\r\n    \"payload\": \"Asset=RoomConditions,temperature=22.5,humidity=60%\",\r\n    \"qos\": 0\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "http://0.0.0.0:1883/api/v4/mqtt/publish",
-					"protocol": "http",
-					"host": [
-						"0",
-						"0",
-						"0",
-						"0"
-					],
-					"port": "1883",
-					"path": [
-						"api",
-						"v4",
-						"mqtt",
-						"publish"
-					]
-				}
-			},
-			"response": []
-		}
-	]
+  "info": {
+    "_postman_id": "6f8630f9-f4c7-4379-a809-e1fda9bff684",
+    "name": "FastAPI Copy",
+    "description": "comm_gw FastAPI and Swagger",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "33228236"
+  },
+  "item": [
+    {
+      "name": "comm_gw",
+      "item": [
+        {
+          "name": "login",
+          "item": [
+            {
+              "name": "Return a token",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"<string>\",\n  \"password\": \"<string>\"\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/comm_gw/login",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["comm_gw", "login"]
+                }
+              },
+              "response": [
+                {
+                  "name": "Successful Response",
+                  "originalRequest": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      },
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"username\": \"<string>\",\n  \"password\": \"<string>\"\n}",
+                      "options": {
+                        "raw": {
+                          "headerFamily": "json",
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": {
+                      "raw": "{{baseUrl}}/comm_gw/login",
+                      "host": ["{{baseUrl}}"],
+                      "path": ["comm_gw", "login"]
+                    }
+                  },
+                  "status": "OK",
+                  "code": 200,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "cookie": [],
+                  "body": "{}"
+                },
+                {
+                  "name": "Validation Error",
+                  "originalRequest": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      },
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"username\": \"<string>\",\n  \"password\": \"<string>\"\n}",
+                      "options": {
+                        "raw": {
+                          "headerFamily": "json",
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": {
+                      "raw": "{{baseUrl}}/comm_gw/login",
+                      "host": ["{{baseUrl}}"],
+                      "path": ["comm_gw", "login"]
+                    }
+                  },
+                  "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+                  "code": 422,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "cookie": [],
+                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"<string>\",\n        \"<string>\"\n      ],\n      \"msg\": \"<string>\",\n      \"type\": \"<string>\"\n    },\n    {\n      \"loc\": [\n        \"<string>\",\n        \"<string>\"\n      ],\n      \"msg\": \"<string>\",\n      \"type\": \"<string>\"\n    }\n  ]\n}"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "seed-stem-device",
+          "item": [
+            {
+              "name": "{device_name}",
+              "item": [
+                {
+                  "name": "Get SEED-STEM devices by device name",
+                  "request": {
+                    "method": "GET",
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "url": {
+                      "raw": "{{baseUrl}}/comm_gw/seed-stem-device/:device_name",
+                      "host": ["{{baseUrl}}"],
+                      "path": ["comm_gw", "seed-stem-device", ":device_name"],
+                      "variable": [
+                        {
+                          "key": "device_name",
+                          "value": "<string>",
+                          "description": "(Required) "
+                        }
+                      ]
+                    }
+                  },
+                  "response": [
+                    {
+                      "name": "Successful Response",
+                      "originalRequest": {
+                        "method": "GET",
+                        "header": [
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "url": {
+                          "raw": "{{baseUrl}}/comm_gw/seed-stem-device/:device_name",
+                          "host": ["{{baseUrl}}"],
+                          "path": [
+                            "comm_gw",
+                            "seed-stem-device",
+                            ":device_name"
+                          ],
+                          "variable": [
+                            {
+                              "key": "device_name"
+                            }
+                          ]
+                        }
+                      },
+                      "status": "OK",
+                      "code": 200,
+                      "_postman_previewlanguage": "json",
+                      "header": [
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json"
+                        }
+                      ],
+                      "cookie": [],
+                      "body": "{\n  \"device_name\": \"<string>\",\n  \"enabled\": \"<boolean>\",\n  \"comms_protocol\": \"<string>\",\n  \"mqtt_broker_host\": \"<string>\",\n  \"mqtt_topic\": \"<string>\",\n  \"asset_point_id\": \"<string>\"\n}"
+                    },
+                    {
+                      "name": "Validation Error",
+                      "originalRequest": {
+                        "method": "GET",
+                        "header": [
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "url": {
+                          "raw": "{{baseUrl}}/comm_gw/seed-stem-device/:device_name",
+                          "host": ["{{baseUrl}}"],
+                          "path": [
+                            "comm_gw",
+                            "seed-stem-device",
+                            ":device_name"
+                          ],
+                          "variable": [
+                            {
+                              "key": "device_name"
+                            }
+                          ]
+                        }
+                      },
+                      "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+                      "code": 422,
+                      "_postman_previewlanguage": "json",
+                      "header": [
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json"
+                        }
+                      ],
+                      "cookie": [],
+                      "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"<string>\",\n        \"<string>\"\n      ],\n      \"msg\": \"<string>\",\n      \"type\": \"<string>\"\n    },\n    {\n      \"loc\": [\n        \"<string>\",\n        \"<string>\"\n      ],\n      \"msg\": \"<string>\",\n      \"type\": \"<string>\"\n    }\n  ]\n}"
+                    }
+                  ]
+                },
+                {
+                  "name": "Update a SEED-STEM device",
+                  "request": {
+                    "method": "PUT",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      },
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"device_name\": \"<string>\",\n  \"enabled\": \"<boolean>\",\n  \"comms_protocol\": \"<string>\",\n  \"mqtt_broker_host\": \"<string>\",\n  \"mqtt_topic\": \"<string>\",\n  \"asset_point_id\": \"<string>\"\n}",
+                      "options": {
+                        "raw": {
+                          "headerFamily": "json",
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": {
+                      "raw": "{{baseUrl}}/comm_gw/seed-stem-device/:device_name",
+                      "host": ["{{baseUrl}}"],
+                      "path": ["comm_gw", "seed-stem-device", ":device_name"],
+                      "variable": [
+                        {
+                          "key": "device_name",
+                          "value": "<string>",
+                          "description": "(Required) "
+                        }
+                      ]
+                    },
+                    "description": "Update an existing SEED-STEM device by deleting and recreating it with new values."
+                  },
+                  "response": [
+                    {
+                      "name": "Successful Response",
+                      "originalRequest": {
+                        "method": "PUT",
+                        "header": [
+                          {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                          },
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n  \"device_name\": \"<string>\",\n  \"enabled\": \"<boolean>\",\n  \"comms_protocol\": \"<string>\",\n  \"mqtt_broker_host\": \"<string>\",\n  \"mqtt_topic\": \"<string>\",\n  \"asset_point_id\": \"<string>\"\n}",
+                          "options": {
+                            "raw": {
+                              "headerFamily": "json",
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": {
+                          "raw": "{{baseUrl}}/comm_gw/seed-stem-device/:device_name",
+                          "host": ["{{baseUrl}}"],
+                          "path": [
+                            "comm_gw",
+                            "seed-stem-device",
+                            ":device_name"
+                          ],
+                          "variable": [
+                            {
+                              "key": "device_name"
+                            }
+                          ]
+                        }
+                      },
+                      "status": "OK",
+                      "code": 200,
+                      "_postman_previewlanguage": "json",
+                      "header": [
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json"
+                        }
+                      ],
+                      "cookie": [],
+                      "body": "{\n  \"device_name\": \"<string>\",\n  \"enabled\": \"<boolean>\",\n  \"comms_protocol\": \"<string>\",\n  \"mqtt_broker_host\": \"<string>\",\n  \"mqtt_topic\": \"<string>\",\n  \"asset_point_id\": \"<string>\"\n}"
+                    },
+                    {
+                      "name": "Validation Error",
+                      "originalRequest": {
+                        "method": "PUT",
+                        "header": [
+                          {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                          },
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n  \"device_name\": \"<string>\",\n  \"enabled\": \"<boolean>\",\n  \"comms_protocol\": \"<string>\",\n  \"mqtt_broker_host\": \"<string>\",\n  \"mqtt_topic\": \"<string>\",\n  \"asset_point_id\": \"<string>\"\n}",
+                          "options": {
+                            "raw": {
+                              "headerFamily": "json",
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": {
+                          "raw": "{{baseUrl}}/comm_gw/seed-stem-device/:device_name",
+                          "host": ["{{baseUrl}}"],
+                          "path": [
+                            "comm_gw",
+                            "seed-stem-device",
+                            ":device_name"
+                          ],
+                          "variable": [
+                            {
+                              "key": "device_name"
+                            }
+                          ]
+                        }
+                      },
+                      "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+                      "code": 422,
+                      "_postman_previewlanguage": "json",
+                      "header": [
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json"
+                        }
+                      ],
+                      "cookie": [],
+                      "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"<string>\",\n        \"<string>\"\n      ],\n      \"msg\": \"<string>\",\n      \"type\": \"<string>\"\n    },\n    {\n      \"loc\": [\n        \"<string>\",\n        \"<string>\"\n      ],\n      \"msg\": \"<string>\",\n      \"type\": \"<string>\"\n    }\n  ]\n}"
+                    }
+                  ]
+                },
+                {
+                  "name": "Delete a SEED-STEM device",
+                  "request": {
+                    "method": "DELETE",
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "url": {
+                      "raw": "{{baseUrl}}/comm_gw/seed-stem-device/:device_name",
+                      "host": ["{{baseUrl}}"],
+                      "path": ["comm_gw", "seed-stem-device", ":device_name"],
+                      "variable": [
+                        {
+                          "key": "device_name",
+                          "value": "<string>",
+                          "description": "(Required) "
+                        }
+                      ]
+                    }
+                  },
+                  "response": [
+                    {
+                      "name": "Successful Response",
+                      "originalRequest": {
+                        "method": "DELETE",
+                        "header": [
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "url": {
+                          "raw": "{{baseUrl}}/comm_gw/seed-stem-device/:device_name",
+                          "host": ["{{baseUrl}}"],
+                          "path": [
+                            "comm_gw",
+                            "seed-stem-device",
+                            ":device_name"
+                          ],
+                          "variable": [
+                            {
+                              "key": "device_name"
+                            }
+                          ]
+                        }
+                      },
+                      "status": "OK",
+                      "code": 200,
+                      "_postman_previewlanguage": "json",
+                      "header": [
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json"
+                        }
+                      ],
+                      "cookie": [],
+                      "body": "{\n  \"result\": \"<string>\",\n  \"statusCode\": \"<integer>\"\n}"
+                    },
+                    {
+                      "name": "Validation Error",
+                      "originalRequest": {
+                        "method": "DELETE",
+                        "header": [
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "url": {
+                          "raw": "{{baseUrl}}/comm_gw/seed-stem-device/:device_name",
+                          "host": ["{{baseUrl}}"],
+                          "path": [
+                            "comm_gw",
+                            "seed-stem-device",
+                            ":device_name"
+                          ],
+                          "variable": [
+                            {
+                              "key": "device_name"
+                            }
+                          ]
+                        }
+                      },
+                      "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+                      "code": 422,
+                      "_postman_previewlanguage": "json",
+                      "header": [
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json"
+                        }
+                      ],
+                      "cookie": [],
+                      "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"<string>\",\n        \"<string>\"\n      ],\n      \"msg\": \"<string>\",\n      \"type\": \"<string>\"\n    },\n    {\n      \"loc\": [\n        \"<string>\",\n        \"<string>\"\n      ],\n      \"msg\": \"<string>\",\n      \"type\": \"<string>\"\n    }\n  ]\n}"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "List SEED-STEM devices",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/comm_gw/seed-stem-device?page=1&limit=10",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["comm_gw", "seed-stem-device"],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1",
+                      "description": "Page number (starts from 1)"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10",
+                      "description": "Number of items per page (max 100)"
+                    }
+                  ]
+                },
+                "description": "Retrieve a paginated list of SEED-STEM devices registered in the Comms Gateway."
+              },
+              "response": [
+                {
+                  "name": "Successful Response",
+                  "originalRequest": {
+                    "method": "GET",
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "url": {
+                      "raw": "{{baseUrl}}/comm_gw/seed-stem-device?page=1&limit=10",
+                      "host": ["{{baseUrl}}"],
+                      "path": ["comm_gw", "seed-stem-device"],
+                      "query": [
+                        {
+                          "key": "page",
+                          "value": "1",
+                          "description": "Page number (starts from 1)"
+                        },
+                        {
+                          "key": "limit",
+                          "value": "10",
+                          "description": "Number of items per page (max 100)"
+                        }
+                      ]
+                    }
+                  },
+                  "status": "OK",
+                  "code": 200,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "cookie": [],
+                  "body": "{\n  \"devices\": [\n    {\n      \"device_name\": \"<string>\",\n      \"enabled\": \"<boolean>\",\n      \"comms_protocol\": \"<string>\"\n    },\n    {\n      \"device_name\": \"<string>\",\n      \"enabled\": \"<boolean>\",\n      \"comms_protocol\": \"<string>\"\n    }\n  ]\n}"
+                },
+                {
+                  "name": "Validation Error",
+                  "originalRequest": {
+                    "method": "GET",
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "url": {
+                      "raw": "{{baseUrl}}/comm_gw/seed-stem-device?page=1&limit=10",
+                      "host": ["{{baseUrl}}"],
+                      "path": ["comm_gw", "seed-stem-device"],
+                      "query": [
+                        {
+                          "key": "page",
+                          "value": "1",
+                          "description": "Page number (starts from 1)"
+                        },
+                        {
+                          "key": "limit",
+                          "value": "10",
+                          "description": "Number of items per page (max 100)"
+                        }
+                      ]
+                    }
+                  },
+                  "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+                  "code": 422,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "cookie": [],
+                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"<string>\",\n        \"<string>\"\n      ],\n      \"msg\": \"<string>\",\n      \"type\": \"<string>\"\n    },\n    {\n      \"loc\": [\n        \"<string>\",\n        \"<string>\"\n      ],\n      \"msg\": \"<string>\",\n      \"type\": \"<string>\"\n    }\n  ]\n}"
+                }
+              ]
+            },
+            {
+              "name": "Create a SEED-STEM device",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"device_name\": \"<string>\",\n  \"enabled\": \"<boolean>\",\n  \"comms_protocol\": \"<string>\",\n  \"mqtt_broker_host\": \"<string>\",\n  \"mqtt_topic\": \"<string>\",\n  \"asset_point_id\": \"<string>\"\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/comm_gw/seed-stem-device",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["comm_gw", "seed-stem-device"]
+                },
+                "description": "Create a new SEED-STEM device in Comms_gw.\nRequired fields: 'device_name' and 'enabled'.\nFor MQTT communication, 'comms_protocol' should be 'mqtt', with optional 'mqtt_broker_host', 'mqtt_topic', and 'asset_point_id'."
+              },
+              "response": [
+                {
+                  "name": "Successful Response",
+                  "originalRequest": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      },
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"device_name\": \"<string>\",\n  \"enabled\": \"<boolean>\",\n  \"comms_protocol\": \"<string>\",\n  \"mqtt_broker_host\": \"<string>\",\n  \"mqtt_topic\": \"<string>\",\n  \"asset_point_id\": \"<string>\"\n}",
+                      "options": {
+                        "raw": {
+                          "headerFamily": "json",
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": {
+                      "raw": "{{baseUrl}}/comm_gw/seed-stem-device",
+                      "host": ["{{baseUrl}}"],
+                      "path": ["comm_gw", "seed-stem-device"]
+                    }
+                  },
+                  "status": "OK",
+                  "code": 200,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "cookie": [],
+                  "body": "{\n  \"device_name\": \"<string>\",\n  \"enabled\": \"<boolean>\",\n  \"comms_protocol\": \"<string>\",\n  \"mqtt_broker_host\": \"<string>\",\n  \"mqtt_topic\": \"<string>\",\n  \"asset_point_id\": \"<string>\"\n}"
+                },
+                {
+                  "name": "Validation Error",
+                  "originalRequest": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      },
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"device_name\": \"<string>\",\n  \"enabled\": \"<boolean>\",\n  \"comms_protocol\": \"<string>\",\n  \"mqtt_broker_host\": \"<string>\",\n  \"mqtt_topic\": \"<string>\",\n  \"asset_point_id\": \"<string>\"\n}",
+                      "options": {
+                        "raw": {
+                          "headerFamily": "json",
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": {
+                      "raw": "{{baseUrl}}/comm_gw/seed-stem-device",
+                      "host": ["{{baseUrl}}"],
+                      "path": ["comm_gw", "seed-stem-device"]
+                    }
+                  },
+                  "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+                  "code": 422,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "cookie": [],
+                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"<string>\",\n        \"<string>\"\n      ],\n      \"msg\": \"<string>\",\n      \"type\": \"<string>\"\n    },\n    {\n      \"loc\": [\n        \"<string>\",\n        \"<string>\"\n      ],\n      \"msg\": \"<string>\",\n      \"type\": \"<string>\"\n    }\n  ]\n}"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "seed_stem_device",
+          "item": [
+            {
+              "name": "disable",
+              "item": [
+                {
+                  "name": "Disable a SEED-STEM device",
+                  "request": {
+                    "method": "PUT",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      },
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"device_name\": \"<string>\"\n}",
+                      "options": {
+                        "raw": {
+                          "headerFamily": "json",
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": {
+                      "raw": "{{baseUrl}}/comm_gw/seed_stem_device/disable",
+                      "host": ["{{baseUrl}}"],
+                      "path": ["comm_gw", "seed_stem_device", "disable"]
+                    }
+                  },
+                  "response": [
+                    {
+                      "name": "Successful Response",
+                      "originalRequest": {
+                        "method": "PUT",
+                        "header": [
+                          {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                          },
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n  \"device_name\": \"<string>\"\n}",
+                          "options": {
+                            "raw": {
+                              "headerFamily": "json",
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": {
+                          "raw": "{{baseUrl}}/comm_gw/seed_stem_device/disable",
+                          "host": ["{{baseUrl}}"],
+                          "path": ["comm_gw", "seed_stem_device", "disable"]
+                        }
+                      },
+                      "status": "OK",
+                      "code": 200,
+                      "_postman_previewlanguage": "json",
+                      "header": [
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json"
+                        }
+                      ],
+                      "cookie": [],
+                      "body": "{\n  \"device_name\": \"<string>\",\n  \"enabled\": \"<boolean>\"\n}"
+                    },
+                    {
+                      "name": "Validation Error",
+                      "originalRequest": {
+                        "method": "PUT",
+                        "header": [
+                          {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                          },
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n  \"device_name\": \"<string>\"\n}",
+                          "options": {
+                            "raw": {
+                              "headerFamily": "json",
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": {
+                          "raw": "{{baseUrl}}/comm_gw/seed_stem_device/disable",
+                          "host": ["{{baseUrl}}"],
+                          "path": ["comm_gw", "seed_stem_device", "disable"]
+                        }
+                      },
+                      "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+                      "code": 422,
+                      "_postman_previewlanguage": "json",
+                      "header": [
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json"
+                        }
+                      ],
+                      "cookie": [],
+                      "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"<string>\",\n        \"<string>\"\n      ],\n      \"msg\": \"<string>\",\n      \"type\": \"<string>\"\n    },\n    {\n      \"loc\": [\n        \"<string>\",\n        \"<string>\"\n      ],\n      \"msg\": \"<string>\",\n      \"type\": \"<string>\"\n    }\n  ]\n}"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "enable",
+              "item": [
+                {
+                  "name": "Enable a SEED-STEM device",
+                  "request": {
+                    "method": "PUT",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      },
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"device_name\": \"<string>\"\n}",
+                      "options": {
+                        "raw": {
+                          "headerFamily": "json",
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": {
+                      "raw": "{{baseUrl}}/comm_gw/seed_stem_device/enable",
+                      "host": ["{{baseUrl}}"],
+                      "path": ["comm_gw", "seed_stem_device", "enable"]
+                    }
+                  },
+                  "response": [
+                    {
+                      "name": "Successful Response",
+                      "originalRequest": {
+                        "method": "PUT",
+                        "header": [
+                          {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                          },
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n  \"device_name\": \"<string>\"\n}",
+                          "options": {
+                            "raw": {
+                              "headerFamily": "json",
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": {
+                          "raw": "{{baseUrl}}/comm_gw/seed_stem_device/enable",
+                          "host": ["{{baseUrl}}"],
+                          "path": ["comm_gw", "seed_stem_device", "enable"]
+                        }
+                      },
+                      "status": "OK",
+                      "code": 200,
+                      "_postman_previewlanguage": "json",
+                      "header": [
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json"
+                        }
+                      ],
+                      "cookie": [],
+                      "body": "{\n  \"device_name\": \"<string>\",\n  \"enabled\": \"<boolean>\"\n}"
+                    },
+                    {
+                      "name": "Validation Error",
+                      "originalRequest": {
+                        "method": "PUT",
+                        "header": [
+                          {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                          },
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n  \"device_name\": \"<string>\"\n}",
+                          "options": {
+                            "raw": {
+                              "headerFamily": "json",
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": {
+                          "raw": "{{baseUrl}}/comm_gw/seed_stem_device/enable",
+                          "host": ["{{baseUrl}}"],
+                          "path": ["comm_gw", "seed_stem_device", "enable"]
+                        }
+                      },
+                      "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+                      "code": 422,
+                      "_postman_previewlanguage": "json",
+                      "header": [
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json"
+                        }
+                      ],
+                      "cookie": [],
+                      "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"<string>\",\n        \"<string>\"\n      ],\n      \"msg\": \"<string>\",\n      \"type\": \"<string>\"\n    },\n    {\n      \"loc\": [\n        \"<string>\",\n        \"<string>\"\n      ],\n      \"msg\": \"<string>\",\n      \"type\": \"<string>\"\n    }\n  ]\n}"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "/"
+    }
+  ]
 }

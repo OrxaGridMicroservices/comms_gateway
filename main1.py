@@ -201,15 +201,8 @@ async def create_seed_stem_device(payload: response_models.CreateSEEDSTEMDeviceP
          response_model=response_models.CreateSEEDSTEMDevicePayload)
 async def update_seed_stem_device(
     device_name: str,
-    update_payload: response_models.CreateSEEDSTEMDevicePayload = Body(...)
+    update_payload: response_models.CreateSEEDSTEMDevicePayload
 ):
-    # Get all devices from all pages
-    all_devices = await get_all_seed_stem_devices()
-    devices_dict = {device.device_name: device.enabled for device in all_devices}
-
-    # Validate existence
-    if device_name not in devices_dict:
-        raise HTTPException(status_code=404, detail="Device not found")
 
     headers = {"Authorization": get_auth_token()}
 
@@ -229,7 +222,7 @@ async def update_seed_stem_device(
                 detail=f"Failed to update '{key}': {response.text}"
             )
 
-    # Re-check device status after update
+    # check device status after update
     refreshed_devices = await get_all_seed_stem_devices()
     enabled = next((d.enabled for d in refreshed_devices if d.device_name == device_name), False)
 

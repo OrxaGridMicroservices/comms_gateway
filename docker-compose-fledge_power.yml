@@ -55,7 +55,7 @@ services:
       - .:/app
     command: >
       bash -c "
-       uvicorn main1:app --host 0.0.0.0 --port 8000 --reload & 
+       uvicorn main:app --host 0.0.0.0 --port 8000 --reload & 
        until curl -s -o /dev/null -w '%{http_code}' http://fledge:8081/fledge/ping | grep -q '200'; do
          echo 'Waiting for Fledge to be online...';
         sleep 2;

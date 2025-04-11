@@ -35,7 +35,7 @@ def find_tap_position(data, ana_ch, tapsubF):
         if lower_bound < tap_measured_value <= upper_bound:
             return entry["Tap"], entry["Expected Value"]
         
-    return 0  # Return 0 if no tap position matches
+    return 0,0  # Return 0 if no tap position matches
 
 def doit(reading):
     """

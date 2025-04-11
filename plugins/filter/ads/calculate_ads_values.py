@@ -33,7 +33,7 @@ def find_tap_position(data, ana_ch, tapsubF):
         
         # Check if the measured value falls within the range
         if lower_bound < tap_measured_value <= upper_bound:
-            return entry["Tap"]
+            return entry["Tap"], entry["Expected Value"]
         
     return 0  # Return 0 if no tap position matches
 
@@ -101,8 +101,9 @@ def doit(reading):
 
                 # Special handling for OLTC: find and store the tap position
                 if normalized_value == "OLTC":
-                    tap_position = find_tap_position(config_values['OLTC_TAP_CONFIG'], reading[reading_key], config_values.get("OLTC_SUB_FACTOR", 0))
+                    tap_position, exp_voltage = find_tap_position(config_values['OLTC_TAP_CONFIG'], reading[reading_key], config_values.get("OLTC_SUB_FACTOR", 0))
                     reading[b'TAP_POSITION'] = tap_position
+                    reading[b'EXP_VOLTAGE'] = exp_voltage
                 else:
                     # Store the calculated result back in the reading
                     reading[normalized_value.encode()] = round(result,2)

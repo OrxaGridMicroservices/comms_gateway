@@ -9,6 +9,12 @@ done
 
 echo "Fledge is online. Proceeding with north plugin configuration..."
 
+echo "create the MQTT_publish south plugin."
+
+curl --location 'http://comms_gw:8081/fledge/service' \
+--header 'Accept: application/json, text/plain, */*' \
+--data '{"name":"MQTT_PUBLISH","type":"south","plugin":"mqtt-readings-binary-publish","config":{"brokerHost":{"value":"emqx"},"username":{"value":"mqtt_user_1"},"password":{"value":"ba0d8613-8ad2-427a-b9d7-00fb5e8f2f01"},"topic":{"value":"#/dostop"}},"enabled":true}'
+
 echo "Create the HTTP North plugin"
 
 curl -s -X POST http://comms_gw:8081/fledge/scheduled/task \
@@ -193,6 +199,31 @@ curl --location 'http://comms_gw:8081/fledge/category/PQS_POST_generate_pqs_limi
  --form 'script=@"/app/plugins/filter/pqs/generate_pqs_limit_violations.py"'
 
 echo "python35 North filters PQS has been configured."
+
+fi
+
+sleep 2
+
+FILTER_NAME="stream_to_websocket"
+
+if curl -s http://comms_gw:8081/fledge/filter | grep -q "\"name\":\s*\"$FILTER_NAME\""; then
+  echo "Filter '$FILTER_NAME' already exists. Skipping creation."
+else
+  echo "Filter '$FILTER_NAME' does not exist. Creating..."
+
+ curl --location 'http://comms_gw:8081/fledge/filter' \
+ --header 'Accept: application/json, text/plain, */*' \
+ --data '{"name":"stream_to_websocket","plugin":"python35","filter_config":{"enable":"true"}}'
+
+curl --location --request PUT 'http://comms_gw:8081/fledge/filter/PDS_POST/pipeline?allow_duplicates=false&append_filter=true' \
+ --header 'Accept: application/json, text/plain, */*' \
+ --data '{"pipeline":["stream_to_websocket"],"files":[{"script":{}}]}'
+
+curl --location 'http://comms_gw:8081/fledge/category/PDS_POST_stream_to_websocket/script/upload' \
+ --header 'Accept: application/json, text/plain, */*' \
+ --form 'script=@"/app/plugins/filter/ws/stream_to_websocket.py"'
+
+echo "python35 North filters web socket streaming has been configured."
 
 fi
 

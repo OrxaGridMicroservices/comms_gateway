@@ -92,6 +92,16 @@ async def broadcast_message_south(message: str):
         asset = payload.get("asset_code")
         readings = payload.get("reading", {})
         topic = readings.get("topic")
+
+        reordered = {
+                "timestamp": readings["timestamp"],
+                "topic": readings["topic"]
+            }
+
+            # Add the remaining keys (excluding timestamp and topic)
+        for k, v in readings.items():
+            if k not in ["timestamp", "topic"]:
+                reordered[k] = v
         
         if not asset or not topic:
             logging.warning("Payload missing asset or topic; skipping this payload.")
@@ -100,7 +110,7 @@ async def broadcast_message_south(message: str):
         if client_key in conn_clients:
             for client in conn_clients[client_key].copy():
                 try:
-                    await client.send_text(json.dumps(readings))
+                    await client.send_text(json.dumps(reordered))
                 except Exception as e:
                     logging.error(f"Failed to send message to client: {e}")
                     conn_clients[client_key].remove(client)
@@ -121,6 +131,17 @@ async def broadcast_message_north(message: str):
             asset = payload.get("asset")
             readings = payload.get("readings", {})
             topic = readings.get("topic")
+
+            # Reorder the dictionary
+            reordered = {
+                "timestamp": readings["timestamp"],
+                "topic": readings["topic"]
+            }
+
+            # Add the remaining keys (excluding timestamp and topic)
+            for k, v in readings.items():
+                if k not in ["timestamp", "topic"]:
+                    reordered[k] = v
             
             if not asset or not topic:
                 logging.warning("Payload missing asset or topic; skipping this payload.")
@@ -130,7 +151,7 @@ async def broadcast_message_north(message: str):
             if client_key in conn_clients:
                 for client in conn_clients[client_key].copy():
                     try:
-                        await client.send_text(json.dumps(readings))
+                        await client.send_text(json.dumps(reordered))
                     except Exception as e:
                         logging.error(f"Failed to send message to client: {e}")
                         conn_clients[client_key].remove(client)

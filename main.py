@@ -966,9 +966,9 @@ async def update_seed_stem_device(
     update_fields = {
         "brokerHost": update_payload.mqtt_broker_host,
         "topic": update_payload.mqtt_topic,
-        "username": update_payload.mqtt_username,  # Use the default value if missing
-        "password": update_payload.mqtt_password,  # Use the default value if missing
-        "assetName": update_payload.asset_point_id  # <- added
+        "username": update_payload.mqtt_username, 
+        "password": update_payload.mqtt_password,  
+        "assetName": update_payload.asset_point_id  
     }
 
     for key, value in update_fields.items():

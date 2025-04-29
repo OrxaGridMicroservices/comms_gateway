@@ -15,6 +15,8 @@ class CreateSEEDSTEMDevicePayload(BaseModel):
     comms_protocol: Optional[str] = Field(..., example="mqtt")
     mqtt_broker_host: Optional[str] = Field(None, example="mosquitto")
     mqtt_topic: Optional[str] = Field(None, example="STMS1/pdstop")
+    mqtt_username: Optional[str] = Field(None, example="mqtt_user")     # New
+    mqtt_password: Optional[str] = Field(None, example="mqtt_pass")
     asset_point_id: Optional[str] = Field(None, example="1")
 
 

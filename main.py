@@ -890,6 +890,8 @@ async def get_category(device_name: str):
         "comms_protocol": data.get("plugin", {}).get("value", ""),
         "mqtt_broker_host": data.get("brokerHost", {}).get("value", ""),
         "mqtt_topic": data.get("topic", {}).get("value", ""),
+        "mqtt_username": data.get("username", {}).get("value", ""),
+        "mqtt_password": data.get("password", {}).get("value", ""),
         "asset_point_id": data.get("assetName", {}).get("value", "")
     }
 
@@ -932,7 +934,10 @@ async def create_seed_stem_device(payload: response_models.CreateSEEDSTEMDeviceP
         payload_dict["config"]["topic"] = {"value": payload.mqtt_topic}
     if payload.asset_point_id is not None:
         payload_dict["config"]["assetName"] = {"value": str(payload.asset_point_id)}
-
+    if payload.mqtt_username is not None:
+        payload_dict["config"]["username"] = {"value": str(payload.mqtt_username)}
+    if payload.mqtt_password is not None:
+        payload_dict["config"]["password"] = {"value": str(payload.mqtt_password)}
     # Send request to Comms GW
     try:
         response = requests.post(url, json=payload_dict, headers=headers)
@@ -961,7 +966,9 @@ async def update_seed_stem_device(
     update_fields = {
         "brokerHost": update_payload.mqtt_broker_host,
         "topic": update_payload.mqtt_topic,
-        "assetName": update_payload.asset_point_id
+        "username": update_payload.mqtt_username, 
+        "password": update_payload.mqtt_password,  
+        "assetName": update_payload.asset_point_id  
     }
 
     for key, value in update_fields.items():
@@ -993,6 +1000,8 @@ async def update_seed_stem_device(
         "comms_protocol": comms_protocol,
         "mqtt_broker_host": update_payload.mqtt_broker_host,
         "mqtt_topic": update_payload.mqtt_topic,
+        "mqtt_username": update_payload.mqtt_username,
+        "mqtt_password": update_payload.mqtt_password,
         "asset_point_id": update_payload.asset_point_id
     }
 

@@ -231,6 +231,12 @@ RUN chmod +x /tmp/fledge-install-dispatcher.sh && \
  RUN chmod +x /tmp/fledge-north-thingspeak_build.sh && \
         /tmp/fledge-north-thingspeak_build.sh && \
         echo '=============================================='
+
+COPY fledge/plugins/north/fledge-north-kafka_build.sh /tmp/
+
+RUN chmod +x /tmp/fledge-north-kafka_build.sh && \
+       /tmp/fledge-north-kafka_build.sh && \
+       echo '=============================================='
 	
   COPY fledge/plugins/filter/fledge-filter-python35_build.sh /tmp/
 

@@ -10,7 +10,7 @@ services:
       - FLEDGE_ROOT=/usr/local/fledge
       - TZ=${TZ}
     volumes:
-      - fledge:/usr/local/fledge
+      - fledge_gw:/usr/local/fledge
       #- ./mqtt-readings-binary:/usr/local/fledge/python/fledge/plugins/south/mqtt-readings-binary
     ports:
       - 8081:8081 # Fledge management API
@@ -100,4 +100,4 @@ services:
     stdin_open: true
 
 volumes:
-  fledge:
+  fledge_gw:

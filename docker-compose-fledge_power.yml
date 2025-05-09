@@ -56,6 +56,7 @@ services:
       - FLEDGE_USERNAME=${FLEDGE_USERNAME:-admin}
       - FLEDGE_PASSWORD=${FLEDGE_PASSWORD:-fledge}
       - TZ=${TZ}
+      - COMMS_GW_FILTER=NORTH
 
   # mqtt-seed-stem-json-emulator:
   #   build: ./mqtt-publisher

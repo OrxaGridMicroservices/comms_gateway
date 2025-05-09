@@ -23,5 +23,8 @@ RUN chmod +x /app/entrypoint.sh
 # Expose the service port
 EXPOSE 8000
 
+#
+ENV COMMS_GW_FILTER=NORTH
+
 # Use CMD to run entrypoint.sh
 CMD ["/app/entrypoint.sh"]
